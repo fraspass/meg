@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__/
+data/
+enron_tuples_filter.txt
+enron_results/
+enron_results_random/
+icl_results/
+simm/
+simm_2/
