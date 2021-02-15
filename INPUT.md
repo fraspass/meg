@@ -2,7 +2,7 @@
 
 ## Methodology
 
-The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (2021+) "Mutually exciting point process graphs for modelling dynamic networks"*. 
+The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (2021+) "[Mutually exciting point process graphs for modelling dynamic networks](https://arxiv.org/abs/2102.06527)"*. 
 
 ## Understanding and running the code
 
