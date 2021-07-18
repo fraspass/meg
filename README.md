@@ -2,7 +2,7 @@
 
 ## Methodology
 
-The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (2021+) "[Mutually exciting point process graphs for modelling dynamic networks](https://arxiv.org/abs/2102.06527)"*. 
+The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (2021+) "Mutually exciting point process graphs for modelling dynamic networks"* [arXiv](https://arxiv.org/abs/2102.06527). 
 
 ## Understanding and running the code
 
@@ -21,7 +21,7 @@ For the simulation in Section 4.1, the file `simulation.py` is used. For fitting
 * `-n`: number of nodes of the graph in the simulation (default: 10),
 * `-T`: maximum time of observation for each simulated graph (default: 1000000),
 * `-M`: number of simulated events for each graph (default: 10000),
-* `-p`: probability of a link in the Erdos-Renyi graph (default: 0.5).
+* `-p`: probability of a link in the Erdős–Rényi graph (default: 0.5).
 
 For example, the first simulation is obtained running the following command line:
 ```
