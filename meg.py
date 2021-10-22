@@ -23,8 +23,8 @@ def scaled_exponential(t,beta,theta):
 def scaled_exponential_prod(t,beta1,beta2,theta1,theta2):
 	return np.sum(beta1 * beta2 * exp(- (beta1 + theta1) * (beta2 + theta2) * t))
 
-## scaled_exponential_prod_vec = np.vectorize(scaled_exponential_prod)
 ## Vectorize the operation
+## scaled_exponential_prod_vec = np.vectorize(scaled_exponential_prod)
 def scaled_exponential_prod_vec(t,beta1,beta2,theta1,theta2):
 		out = np.zeros(len(t))
 		for i in range(len(t)):
@@ -738,6 +738,208 @@ class meg_model:
 				print("\r+++ Percentage of processed links +++ {:0.2f}%".format(prop / self.m * 100), end="")
 		if verbose:
 			print("")
+
+	## EM algorithm
+	def em_optimise(self, max_iter=100):
+		if self.main_effects and not self.hawkes_me:
+			raise ValueError('This EM algorithm can only be run for Hawkes and Poisson processes (not general Markov processes).')
+		if self.interactions and not self.hawkes_int:
+			raise ValueError('This EM algorithm can only be run for Hawkes and Poisson processes (not general Markov processes).')
+		if not self.directed:
+			raise ValueError('This EM algorithm can only be run for directed graphs (including bipartite graphs).')
+		## Calculate psi
+		if ((self.interactions and self.hawkes_int) or (self.main_effects and self.hawkes_me)) and (not self.poisson_me or not self.poisson_int):
+			self.psi_calculation(verbose=verbose)
+		## Calculate zeta
+		self.zeta_calculation(verbose=verbose)
+		## Obtain the Q matrices for calculating responsibilities
+		self.Q = {}
+		for link in A:
+			if self.main_effects:
+				self.Q[link] = np.subtract.outer(self.A[link], self.node_ts[link[0]])
+				self.Q[link] = np.exp(-self.Q[link]) * (self.Q[link] > 0)
+				self.Q_prime[link] = np.subtract.outer(self.A[link], self.node_ts_prime[link[1]])
+				self.Q_prime[link] = np.exp(-self.Q_prime[link]) * (self.Q_prime[link] > 0)
+			if self.interactions:
+				self.Q_tilde[link] = np.subtract.outer(self.A[link], self.A[link])
+				self.Q_tilde[link] = np.exp(-self.Q_tilde[link]) * (self.Q_tilde[link] > 0)
+		## Define the reparametrised parameters
+		if self.main_effects:
+			self.csi_alpha = {}
+			self.csi_beta = {} 
+			if not self.posson_me:
+				self.zeta_alpha = {}
+				self.zeta_beta = {}
+		if self.interactions:
+			self.csi_gamma = {}
+				if not self.poisson_int:
+					self.zeta_gamma = {}
+		## Obtain the numerators for M-step for alpha and beta (identical at each iteration)
+		if self.main_effects:
+			den_alpha = self.n if not self.bipartite else self.n2) * self.T
+			den_beta = self.n * self.T 
+		## Initialise iterations
+		iteration = 0
+		## Criterion
+		tcrit = True
+		## Loop until the tolerance criterion is satisfied
+		while tcrit and iteration < max_iter:
+			print("\r+++ Iteration {:d} +++".format(iteration+1),end="")
+			iteration += 1
+			## E-step: calculate responsibilities
+			for link in self.A:
+				if self.main_effects:
+					self.csi_alpha[link] = self.alpha_tilde[link[0]] / self.zeta[link]
+					if self.directed:
+						self.csi_beta[link] = self.beta_tilde[link[1]] / self.zeta[link]
+					else:
+						self.csi_beta[link] = self.alpha_tilde[link[1]] / self.zeta[link]
+					if not self.posson_me:
+						self.zeta_alpha[link] = np.divide(self.mu_tilde[link[0]] * self.phi_tilde[link[0]] * (Q[link] ** self.phi_tilde[link[0]]), self.zeta[link])
+						if self.directed:
+							self.zeta_beta[link] = np.divide(self.mu_prime_tilde[link[1]] * self.phi_prime_tilde[link[1]] * (Q_prime[link] ** self.phi_prime_tilde[link[1]]), self.zeta[link])
+				if self.interactions:
+					self.csi_gamma[link] = self.gamma_tilde[link[0]] * (self.gamma_prime_tilde[link[1]] if self.directed else self.gamma_tilde[link[1]]) / self.zeta[link]
+						##### CHECK THIS FOR MULTIPLE D
+						if not self.poisson_int:
+							self.zeta_gamma[link] = self.nu_tilde[link[0]] * self.theta_tilde[link[0]] * np.tile(np.ones(,),(self.D,1,1))
+							self.zeta_gamma[link] *= (self.nu_prime_tilde[link[1]] * self.theta_prime_tilde[link[1]]) if self.directed else (self.nu_tilde[link[1]] * self.theta_tilde[link[1]])
+							for q in range(self.D):
+								## Check here for multiple qs							
+								self.zeta_gamma[link][q] *= Q_tilde[link] ** (self.theta_tilde[link[0],q] * (self.theta_prime_tilde[link[1],q] if self.directed else self.theta_tilde[link[1],q]))
+							self.zeta_gamma[link] /= self.zeta[link] ## check if this works for broadcasting
+			## Pre-allocate arrays for M-step
+			if self.main_effects:
+				num_alpha = np.zeros(self.n if not self.bipartite else self.n1)
+				num_beta = np.zeros(self.n if not self.bipartite else self.n2)
+				if not self.poisson_me:
+					num_mu_phi = np.zeros(self.n if not self.bipartite else self.n1)
+					den_mu = np.zeros(self.n if not self.bipartite else self.n1)
+					den_phi = np.zeros(self.n if not self.bipartite else self.n1)
+					num_mu_phi_prime = np.zeros(self.n if not self.bipartite else self.n2)
+					den_mu_prime = np.zeros(self.n if not self.bipartite else self.n2)
+					den_phi_prime = np.zeros(self.n if not self.bipartite else self.n2)
+			if self.interactions:	
+				num_gamma = np.zeros((self.n if not self.bipartite else self.n1, self.D))
+				den_gamma = np.sum(self.gamma_prime_tilde * self.T)
+				if not self.poisson_int:
+					num_nu_theta = np.zeros((self.n if not self.bipartite else self.n1, self.D))
+					den_nu = np.zeros((self.n if not self.bipartite else self.n1, self.D))
+					den_theta = np.zeros((self.n if not self.bipartite else self.n1, self.D))
+					num_nu_theta_prime = np.zeros((self.n if not self.bipartite else self.n2, self.D))
+					den_nu_prime = np.zeros((self.n if not self.bipartite else self.n2, self.D))
+					den_theta_prime = np.zeros((self.n if not self.bipartite else self.n2, self.D))
+			## Loop over links for numerators for most parameters except theta
+			for link in self.A:
+				if self.main_effects:	
+					num_alpha[link[0]] += np.sum(self.csi_alpha[link])
+					num_beta[link[1]] += np.sum(self.csi_beta[link])
+					if not self.poisson_me:
+						num_mu_phi[link[0]] += np.sum(self.zeta_alpha[link])
+						num_mu_phi_prime[link[1]] += np.sum(self.zeta_beta[link])
+				if self.interactions: 
+					num_gamma[link[0]] += np.sum(self.csi_gamma[link])
+					if not self.poisson_int:
+						num_nu_theta[link[0]] += np.sum(self.zeta_gamma[link],axis=(1,2))
+						num_nu_theta_prime[link[1]] += np.sum(self.zeta_gamma[link],axis=(1,2))
+						den_nu[link[0]] += self.nu_tilde_prime[link[1]] * np.sum(1 - np.exp(- self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
+			## M-step: maximise expected complete data log-likelihood
+			if self.main_effects:
+				self.alpha_tilde = num_alpha / den_alpha
+				if self.directed:
+					self.beta_tilde = num_beta / den_beta
+			if self.interactions:
+				self.gamma_tilde = num_gamma / den_gamma
+				den_gamma_prime = np.sum(self.gamma_tilde * self.T)
+				self.gamma_prime_tilde = num_gamma / den_gamma_prime
+			## Update mu and mu_prime
+			if self.main_effects and not self.poisson_me:
+				for i in self.node_ts:
+					den_mu[i] = (self.n if not self.bipartite else self.n2) * np.sum(1 - np.exp(-self.phi_tilde[i] * (self.T - self.node_ts[i])))
+				self.mu_tilde = num_mu_phi / den_mu
+				for j in self.node_ts_prime:
+					den_mu_prime[j] = self.n * np.sum(1 - np.exp(-self.phi_prime_tilde[j] * (self.T - self.node_ts_prime[j])))
+				self.mu_prime_tilde = num_mu_phi_prime / den_mu_prime
+			## Update nu
+			if self.interactions and not self.poisson_int:
+				self.nu_tilde = num_nu_theta / den_nu
+			## Loop on nodes for denominators for phi and phi_prime
+			if self.main_effects and not self.poisson_me:
+				for node in self.node_ts:
+					den_phi[node] += (self.n2 if self.bipartite else self.n) * self.mu_tilde[node] * np.sum(1 - (self.T - self.node_ts[node]) * np.exp(-self.phi_tilde[node] * (self.T - self.node_ts[node])))
+				for node in self.node_ts_prime:	
+					den_phi_prime[node] += self.n * self.mu_prime_tilde[node] * np.sum(1 - (self.T - self.node_ts_prime[node]) * np.exp(-self.phi_prime_tilde[node] * (self.T - self.node_ts_prime[node])))
+			## Loop on edges for denominators for nu_prime, phi, phi_prime, theta and theta_prime (only first part)
+			if (self.main_effects and not self.poisson_me) or (self.interactions and not self.poisson_int):
+				for link in self.A:
+					if self.main_effects and not self.poisson_me:	
+						den_phi[link[0]] += np.sum(np.multiply(self.Q[link], self.zeta_alpha[link])))
+						den_phi_prime[link[1]] += np.sum(np.multiply(self.Q_prime[link], self.zeta_beta[link])))
+					if self.interactions and not self.poisson_int:
+						den_nu_prime[link[1]] += self.nu_tilde[link[0]] * np.sum(1 - np.exp(- self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
+						vv = np.sum(np.multiply(self.Q_tilde[link], self.zeta_gamma[link])), axis=(1,2))
+						vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_tilde_prime[link[1]])
+						vv22 = 1 - np.multiply(T-self.A[link], np.exp(np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), T-self.A[link])))
+						vv2 = np.sum(np.multiply(vv21, vv22))
+						den_theta[link[0]] += vv + vv2
+						den_theta_prime[link[1]] += vv
+				## Update phi and phi_prime
+				if self.main_effects and not self.poisson_me:
+					self.phi_tilde = num_mu_phi / den_phi
+					self.phi_prime_tilde = num_mu_phi_prime / den_phi_prime
+				## Update theta
+				if self.interactions and not self.poisson_int:
+					self.theta_tilde = num_nu_theta / den_theta
+			## Update theta_prime
+			if self.interactions and not self.poisson_int:
+				for link in self.A:
+					vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_tilde_prime[link[1]])
+					vv22 = 1 - np.multiply(T-self.A[link], np.exp(np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), T-self.A[link])))
+					vv2 = np.sum(np.multiply(vv21, vv22))
+					den_theta_prime[link[1]] += vv2
+				self.theta_prime_tilde = num_nu_theta / den_theta_prime
+			## Convert to likelihood parametrisation
+			if self.main_effects:
+				self.alpha = np.copy(self.alpha_tilde)
+				self.beta = np.copy(self.beta_tilde)
+				if not self.posson_me:
+					self.mu = np.multiply(self.mu_tilde, self.phi_tilde)
+					self.phi = self.phi_tilde - self.mu
+					self.mu_prime = np.multiply(self.mu_prime_tilde, self.phi_prime_tilde)
+					self.phi_prime = self.phi_prime_tilde - self.mu_prime
+			if self.interactions:
+				self.gamma = np.copy(self.gamma_tilde)
+				self.gamma_prime = np.copy(self.gamma_prime_tilde)
+				if not self.poisson_int:
+					self.nu = np.multiply(self.nu_tilde, self.theta_tilde)
+					self.theta = self.theta_tilde - self.nu
+					self.nu_prime = np.multiply(self.nu_prime_tilde, self.theta_prime_tilde)
+					self.theta_prime = self.theta_prime_tilde - self.nu_prime
+			## Calculate likelihood for	evaluating convergence
+			if ((self.interactions and self.hawkes_int) or (self.main_effects and self.hawkes_me)) and (not self.poisson_me or not self.poisson_int):
+				self.psi_calculation(verbose=verbose)
+			## Calculate zeta
+			self.zeta_calculation(verbose=verbose)
+			## Calculate compensator
+			self.compensator_T()
+			## Use zeta to calculate the likelihood correctly
+			log_likelihood = 0.0
+			for link in self.A:
+				log_likelihood += np.sum(np.log(list(self.zeta[link].values())))
+				log_likelihood -= self.Lambda_T[link]
+			## Add back missing elements
+			if self.main_effects and self.full_links:
+				log_likelihood -= (self.n2 if self.bipartite else self.n) * np.sum(self.alpha_compensator)
+				log_likelihood -= (self.n1 if self.bipartite else self.n) * np.sum(self.beta_compensator if self.directed else self.alpha_compensator)
+			if self.interactions and self.full_links:
+				if self.D == 1:
+					log_likelihood -= self.T * np.sum(self.gamma) * np.sum(self.gamma_prime if self.directed else self.gamma)
+				else:
+					log_likelihood -= self.T * np.inner(np.sum(self.gamma,axis=0), np.sum(self.gamma_prime if self.directed else self.gamma, axis=0))
+			ll += [log_likelihood]
+			## Calculate the criterion
+			if iteration > 2 and ll[-1] - ll[-2] > 0:
+				tcrit = (np.abs((ll[-1] - ll[-2]) / ll[-2]) > tolerance)
 
 	## Calculation of the compensator at time T (useful for the log-likelihood) - Approximation for the discrete process
 	def compensator_T(self):
