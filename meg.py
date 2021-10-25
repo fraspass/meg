@@ -49,7 +49,7 @@ def discrete_process_difference(ts):
 class meg_model:
 	
 	## Initialise the class from the dynamic adjacency matrix A (or biadjacency matrix), stored in a dictionary
-	def __init__(self,A, T=0, tau_zero=False, full_links=False, force_square=False, discrete=False, verbose=False):
+	def __init__(self,A, T=0, tau_zero=False, full_links=False, force_square=False, discrete=False, verbose=False, evaluate_directed=True):
 		# Obtain total time of observation
 		self.A = {} #A
 		# Discrete/continuous model
@@ -99,7 +99,7 @@ class meg_model:
 		else:
 			self.bipartite = False
 			self.n = np.max([max_source,max_dest]) + 1
-			if (count_symmetries == len(self.A) or count_symmetries == 0):
+			if (count_symmetries == len(self.A) or count_symmetries == 0) and evaluate_directed:
 				self.directed = False
 			else:
 				self.directed = True
@@ -749,27 +749,51 @@ class meg_model:
 			raise ValueError('This EM algorithm can only be run for Hawkes and Poisson processes (not general Markov processes).')
 		if not self.directed:
 			raise ValueError('This EM algorithm can only be run for directed graphs (including bipartite graphs).')
+		## Setup likelihood calculations
+		self.likelihood_calculation_setup(verbose=verbose)
 		## Calculate psi
 		if ((self.interactions and self.hawkes_int) or (self.main_effects and self.hawkes_me)) and (not self.poisson_me or not self.poisson_int):
 			self.psi_calculation(verbose=verbose)
 		## Calculate zeta
 		self.zeta_calculation(verbose=verbose)
+		## Initialisation parameters
+		if self.main_effects:
+			self.alpha_tilde = np.copy(self.alpha)
+			self.beta_tilde = np.copy(self.beta)
+			if not self.poisson_me:
+				self.mu_tilde = 1 / (1 - self.phi / self.mu)
+				self.phi_tilde = self.phi + self.mu
+				self.mu_prime_tilde = 1 / (1 - self.phi_prime / self.mu_prime)
+				self.phi_prime_tilde = self.phi_prime + self.mu_prime
+		if self.interactions:
+			self.gamma_tilde = np.copy(self.gamma)
+			self.gamma_prime_tilde = np.copy(self.gamma_prime)
+			if not self.poisson_int:
+				self.nu_tilde = 1 / (1 - self.theta / self.nu_tilde)
+				self.theta_tilde = self.theta + self.nu
+				self.nu_prime_tilde = 1 / (1 - self.theta_prime / self.nu_prime)
+				self.theta_prime_tilde = self.theta_prime + self.nu_prime
 		## Obtain the Q matrices for calculating responsibilities
 		Q = {}; Q_prime = {}; Q_tilde = {}
 		for link in self.A:
 			if self.main_effects:
+				## Consider only positive differences between the arrival times
 				Q[link] = np.subtract.outer(self.A[link], self.node_ts[link[0]])
-				Q[link] = np.exp(-self.Q[link]) * (self.Q[link] > 0)
+				Q[link] *= (Q[link] > 0) 
+				Q[link] = (Q[link] > 0) * np.exp(-Q[link])
+				## Repeat for destination
 				Q_prime[link] = np.subtract.outer(self.A[link], self.node_ts_prime[link[1]])
-				Q_prime[link] = np.exp(-self.Q_prime[link]) * (self.Q_prime[link] > 0)
+				Q_prime[link] *= (Q_prime[link] > 0)
+				Q_prime[link] = (Q_prime[link] > 0) * np.exp(-Q_prime[link])
 			if self.interactions:
 				Q_tilde[link] = np.subtract.outer(self.A[link], self.A[link])
-				Q_tilde[link] = np.exp(-self.Q_tilde[link]) * (self.Q_tilde[link] > 0)
+				Q_tilde[link] *= (Q_tilde[link] > 0)
+				Q_tilde[link] = np.exp(-Q_tilde[link]) * (Q_tilde[link] > 0)
 		## Define the reparametrised parameters
 		if self.main_effects:
 			self.csi_alpha = {}
 			self.csi_beta = {} 
-			if not self.posson_me:
+			if not self.poisson_me:
 				self.zeta_alpha = {}
 				self.zeta_beta = {}
 		if self.interactions:
@@ -797,7 +821,7 @@ class meg_model:
 						self.csi_beta[link] = self.beta_tilde[link[1]] / self.zeta[link]
 					else:
 						self.csi_beta[link] = self.alpha_tilde[link[1]] / self.zeta[link]
-					if not self.posson_me:
+					if not self.poisson_me:
 						self.zeta_alpha[link] = np.divide(self.mu_tilde[link[0]] * self.phi_tilde[link[0]] * (Q[link] ** self.phi_tilde[link[0]]), self.zeta[link])
 						if self.directed:
 							self.zeta_beta[link] = np.divide(self.mu_prime_tilde[link[1]] * self.phi_prime_tilde[link[1]] * (Q_prime[link] ** self.phi_prime_tilde[link[1]]), self.zeta[link])
@@ -874,11 +898,11 @@ class meg_model:
 			if (self.main_effects and not self.poisson_me) or (self.interactions and not self.poisson_int):
 				for link in self.A:
 					if self.main_effects and not self.poisson_me:	
-						den_phi[link[0]] += np.sum(np.multiply(self.Q[link], self.zeta_alpha[link]))
-						den_phi_prime[link[1]] += np.sum(np.multiply(self.Q_prime[link], self.zeta_beta[link]))
+						den_phi[link[0]] += np.sum(np.multiply(Q[link], self.zeta_alpha[link]))
+						den_phi_prime[link[1]] += np.sum(np.multiply(Q_prime[link], self.zeta_beta[link]))
 					if self.interactions and not self.poisson_int:
 						den_nu_prime[link[1]] += self.nu_tilde[link[0]] * np.sum(1 - np.exp(- self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
-						vv = np.sum(np.multiply(self.Q_tilde[link], self.zeta_gamma[link]), axis=(1,2))
+						vv = np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]), axis=(1,2))
 						vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_tilde_prime[link[1]])
 						vv22 = 1 - np.multiply(self.T - self.A[link], np.exp(np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
 						vv2 = np.sum(np.multiply(vv21, vv22))
@@ -903,7 +927,7 @@ class meg_model:
 			if self.main_effects:
 				self.alpha = np.copy(self.alpha_tilde)
 				self.beta = np.copy(self.beta_tilde)
-				if not self.posson_me:
+				if not self.poisson_me:
 					self.mu = np.multiply(self.mu_tilde, self.phi_tilde)
 					self.phi = self.phi_tilde - self.mu
 					self.mu_prime = np.multiply(self.mu_prime_tilde, self.phi_prime_tilde)
