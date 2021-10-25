@@ -741,6 +741,8 @@ class meg_model:
 
 	## EM algorithm
 	def em_optimise(self, max_iter=100):
+		if not self.tau_zero or not self.full_links:
+			raise ValueError('This EM algorithm can only be run when *all* links are *potentially* active. Explicit contraints on edges are in development.')
 		if self.main_effects and not self.hawkes_me:
 			raise ValueError('This EM algorithm can only be run for Hawkes and Poisson processes (not general Markov processes).')
 		if self.interactions and not self.hawkes_int:
@@ -772,11 +774,11 @@ class meg_model:
 				self.zeta_beta = {}
 		if self.interactions:
 			self.csi_gamma = {}
-				if not self.poisson_int:
-					self.zeta_gamma = {}
+			if not self.poisson_int:
+				self.zeta_gamma = {}
 		## Obtain the numerators for M-step for alpha and beta (identical at each iteration)
 		if self.main_effects:
-			den_alpha = self.n if not self.bipartite else self.n2) * self.T
+			den_alpha = (self.n if not self.bipartite else self.n2) * self.T
 			den_beta = self.n * self.T 
 		## Initialise iterations
 		iteration = 0
@@ -800,14 +802,12 @@ class meg_model:
 							self.zeta_beta[link] = np.divide(self.mu_prime_tilde[link[1]] * self.phi_prime_tilde[link[1]] * (Q_prime[link] ** self.phi_prime_tilde[link[1]]), self.zeta[link])
 				if self.interactions:
 					self.csi_gamma[link] = self.gamma_tilde[link[0]] * (self.gamma_prime_tilde[link[1]] if self.directed else self.gamma_tilde[link[1]]) / self.zeta[link]
-						##### CHECK THIS FOR MULTIPLE D
-						if not self.poisson_int:
-							self.zeta_gamma[link] = self.nu_tilde[link[0]] * self.theta_tilde[link[0]] * np.tile(np.ones(,),(self.D,1,1))
-							self.zeta_gamma[link] *= (self.nu_prime_tilde[link[1]] * self.theta_prime_tilde[link[1]]) if self.directed else (self.nu_tilde[link[1]] * self.theta_tilde[link[1]])
-							for q in range(self.D):
-								## Check here for multiple qs							
-								self.zeta_gamma[link][q] *= Q_tilde[link] ** (self.theta_tilde[link[0],q] * (self.theta_prime_tilde[link[1],q] if self.directed else self.theta_tilde[link[1],q]))
-							self.zeta_gamma[link] /= self.zeta[link] ## check if this works for broadcasting
+					if not self.poisson_int:
+						self.zeta_gamma[link] = self.nu_tilde[link[0]] * self.theta_tilde[link[0]] * np.tile(np.ones((self.nij[link],self.nij[link])),(self.D,1,1))
+						self.zeta_gamma[link] *= (self.nu_prime_tilde[link[1]] * self.theta_prime_tilde[link[1]]) if self.directed else (self.nu_tilde[link[1]] * self.theta_tilde[link[1]])
+						for q in range(self.D):
+							self.zeta_gamma[link][q] *= Q_tilde[link] ** (self.theta_tilde[link[0],q] * (self.theta_prime_tilde[link[1],q] if self.directed else self.theta_tilde[link[1],q]))
+						self.zeta_gamma[link] /= self.zeta[link]
 			## Pre-allocate arrays for M-step
 			if self.main_effects:
 				num_alpha = np.zeros(self.n if not self.bipartite else self.n1)
@@ -873,11 +873,11 @@ class meg_model:
 			if (self.main_effects and not self.poisson_me) or (self.interactions and not self.poisson_int):
 				for link in self.A:
 					if self.main_effects and not self.poisson_me:	
-						den_phi[link[0]] += np.sum(np.multiply(self.Q[link], self.zeta_alpha[link])))
-						den_phi_prime[link[1]] += np.sum(np.multiply(self.Q_prime[link], self.zeta_beta[link])))
+						den_phi[link[0]] += np.sum(np.multiply(self.Q[link], self.zeta_alpha[link]))
+						den_phi_prime[link[1]] += np.sum(np.multiply(self.Q_prime[link], self.zeta_beta[link]))
 					if self.interactions and not self.poisson_int:
 						den_nu_prime[link[1]] += self.nu_tilde[link[0]] * np.sum(1 - np.exp(- self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
-						vv = np.sum(np.multiply(self.Q_tilde[link], self.zeta_gamma[link])), axis=(1,2))
+						vv = np.sum(np.multiply(self.Q_tilde[link], self.zeta_gamma[link]), axis=(1,2))
 						vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_tilde_prime[link[1]])
 						vv22 = 1 - np.multiply(T-self.A[link], np.exp(np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), T-self.A[link])))
 						vv2 = np.sum(np.multiply(vv21, vv22))
