@@ -740,7 +740,7 @@ class meg_model:
 			print("")
 
 	## EM algorithm
-	def em_optimise(self, max_iter=100):
+	def em_optimise(self, max_iter=100, verbose=False, tolerance=1e-4):
 		if not self.tau_zero or not self.full_links:
 			raise ValueError('This EM algorithm can only be run when *all* links are *potentially* active. Explicit contraints on edges are in development.')
 		if self.main_effects and not self.hawkes_me:
@@ -755,16 +755,16 @@ class meg_model:
 		## Calculate zeta
 		self.zeta_calculation(verbose=verbose)
 		## Obtain the Q matrices for calculating responsibilities
-		self.Q = {}
-		for link in A:
+		Q = {}; Q_prime = {}; Q_tilde = {}
+		for link in self.A:
 			if self.main_effects:
-				self.Q[link] = np.subtract.outer(self.A[link], self.node_ts[link[0]])
-				self.Q[link] = np.exp(-self.Q[link]) * (self.Q[link] > 0)
-				self.Q_prime[link] = np.subtract.outer(self.A[link], self.node_ts_prime[link[1]])
-				self.Q_prime[link] = np.exp(-self.Q_prime[link]) * (self.Q_prime[link] > 0)
+				Q[link] = np.subtract.outer(self.A[link], self.node_ts[link[0]])
+				Q[link] = np.exp(-self.Q[link]) * (self.Q[link] > 0)
+				Q_prime[link] = np.subtract.outer(self.A[link], self.node_ts_prime[link[1]])
+				Q_prime[link] = np.exp(-self.Q_prime[link]) * (self.Q_prime[link] > 0)
 			if self.interactions:
-				self.Q_tilde[link] = np.subtract.outer(self.A[link], self.A[link])
-				self.Q_tilde[link] = np.exp(-self.Q_tilde[link]) * (self.Q_tilde[link] > 0)
+				Q_tilde[link] = np.subtract.outer(self.A[link], self.A[link])
+				Q_tilde[link] = np.exp(-self.Q_tilde[link]) * (self.Q_tilde[link] > 0)
 		## Define the reparametrised parameters
 		if self.main_effects:
 			self.csi_alpha = {}
@@ -780,7 +780,8 @@ class meg_model:
 		if self.main_effects:
 			den_alpha = (self.n if not self.bipartite else self.n2) * self.T
 			den_beta = self.n * self.T 
-		## Initialise iterations
+		## Initialise iterations and vector for likelihood
+		ll = []
 		iteration = 0
 		## Criterion
 		tcrit = True
@@ -879,7 +880,7 @@ class meg_model:
 						den_nu_prime[link[1]] += self.nu_tilde[link[0]] * np.sum(1 - np.exp(- self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
 						vv = np.sum(np.multiply(self.Q_tilde[link], self.zeta_gamma[link]), axis=(1,2))
 						vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_tilde_prime[link[1]])
-						vv22 = 1 - np.multiply(T-self.A[link], np.exp(np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), T-self.A[link])))
+						vv22 = 1 - np.multiply(self.T - self.A[link], np.exp(np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
 						vv2 = np.sum(np.multiply(vv21, vv22))
 						den_theta[link[0]] += vv + vv2
 						den_theta_prime[link[1]] += vv
@@ -894,7 +895,7 @@ class meg_model:
 			if self.interactions and not self.poisson_int:
 				for link in self.A:
 					vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_tilde_prime[link[1]])
-					vv22 = 1 - np.multiply(T-self.A[link], np.exp(np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), T-self.A[link])))
+					vv22 = 1 - np.multiply(self.T - self.A[link], np.exp(np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
 					vv2 = np.sum(np.multiply(vv21, vv22))
 					den_theta_prime[link[1]] += vv2
 				self.theta_prime_tilde = num_nu_theta / den_theta_prime
