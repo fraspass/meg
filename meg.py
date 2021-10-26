@@ -761,17 +761,17 @@ class meg_model:
 			self.alpha_tilde = np.copy(self.alpha)
 			self.beta_tilde = np.copy(self.beta)
 			if not self.poisson_me:
-				self.mu_tilde = 1 / (1 - self.phi / self.mu)
+				self.mu_tilde = 1 / (1 + self.phi / self.mu)
 				self.phi_tilde = self.phi + self.mu
-				self.mu_prime_tilde = 1 / (1 - self.phi_prime / self.mu_prime)
+				self.mu_prime_tilde = 1 / (1 + self.phi_prime / self.mu_prime)
 				self.phi_prime_tilde = self.phi_prime + self.mu_prime
 		if self.interactions:
 			self.gamma_tilde = np.copy(self.gamma)
 			self.gamma_prime_tilde = np.copy(self.gamma_prime)
 			if not self.poisson_int:
-				self.nu_tilde = 1 / (1 - self.theta / self.nu_tilde)
+				self.nu_tilde = 1 / (1 + self.theta / self.nu)
 				self.theta_tilde = self.theta + self.nu
-				self.nu_prime_tilde = 1 / (1 - self.theta_prime / self.nu_prime)
+				self.nu_prime_tilde = 1 / (1 + self.theta_prime / self.nu_prime)
 				self.theta_prime_tilde = self.theta_prime + self.nu_prime
 		## Obtain the Q matrices for calculating responsibilities
 		Q = {}; Q_prime = {}; Q_tilde = {}
@@ -779,16 +779,13 @@ class meg_model:
 			if self.main_effects:
 				## Consider only positive differences between the arrival times
 				Q[link] = np.subtract.outer(self.A[link], self.node_ts[link[0]])
-				Q[link] *= (Q[link] > 0) 
-				Q[link] = (Q[link] > 0) * np.exp(-Q[link])
+				Q[link] *= (Q[link] > 0)
 				## Repeat for destination
 				Q_prime[link] = np.subtract.outer(self.A[link], self.node_ts_prime[link[1]])
 				Q_prime[link] *= (Q_prime[link] > 0)
-				Q_prime[link] = (Q_prime[link] > 0) * np.exp(-Q_prime[link])
 			if self.interactions:
 				Q_tilde[link] = np.subtract.outer(self.A[link], self.A[link])
 				Q_tilde[link] *= (Q_tilde[link] > 0)
-				Q_tilde[link] = np.exp(-Q_tilde[link]) * (Q_tilde[link] > 0)
 		## Define the reparametrised parameters
 		if self.main_effects:
 			self.csi_alpha = {}
@@ -815,24 +812,44 @@ class meg_model:
 			iteration += 1
 			## E-step: calculate responsibilities
 			for link in self.A:
+				zval = np.array(list(self.zeta[link].values()))
 				if self.main_effects:
-					self.csi_alpha[link] = self.alpha_tilde[link[0]] / self.zeta[link]
-					if self.directed:
-						self.csi_beta[link] = self.beta_tilde[link[1]] / self.zeta[link]
-					else:
-						self.csi_beta[link] = self.alpha_tilde[link[1]] / self.zeta[link]
+					self.csi_alpha[link] = self.alpha_tilde[link[0]] ## / zval
+					self.csi_beta[link] = self.beta_tilde[link[1]] ## / zval	
 					if not self.poisson_me:
-						self.zeta_alpha[link] = np.divide(self.mu_tilde[link[0]] * self.phi_tilde[link[0]] * (Q[link] ** self.phi_tilde[link[0]]), self.zeta[link])
-						if self.directed:
-							self.zeta_beta[link] = np.divide(self.mu_prime_tilde[link[1]] * self.phi_prime_tilde[link[1]] * (Q_prime[link] ** self.phi_prime_tilde[link[1]]), self.zeta[link])
+						self.zeta_alpha[link] = self.mu[link[0]] * np.exp(-Q[link] * self.phi_tilde[link[0]]) * (Q[link] > 0) ## / zval.reshape(-1,1)
+						self.zeta_beta[link] = self.mu_prime[link[1]] * np.exp(-Q_prime[link] * self.phi_prime_tilde[link[1]]) * (Q_prime[link] > 0) ## / zval.reshape(-1,1)
 				if self.interactions:
-					self.csi_gamma[link] = self.gamma_tilde[link[0]] * (self.gamma_prime_tilde[link[1]] if self.directed else self.gamma_tilde[link[1]]) / self.zeta[link]
+					self.csi_gamma[link] = self.gamma_tilde[link[0]] * self.gamma_prime_tilde[link[1]] ## / zval
 					if not self.poisson_int:
-						self.zeta_gamma[link] = self.nu_tilde[link[0]] * self.theta_tilde[link[0]] * np.tile(np.ones((self.nij[link],self.nij[link])),(self.D,1,1))
-						self.zeta_gamma[link] *= (self.nu_prime_tilde[link[1]] * self.theta_prime_tilde[link[1]]) if self.directed else (self.nu_tilde[link[1]] * self.theta_tilde[link[1]])
-						for q in range(self.D):
-							self.zeta_gamma[link][q] *= Q_tilde[link] ** (self.theta_tilde[link[0],q] * (self.theta_prime_tilde[link[1],q] if self.directed else self.theta_tilde[link[1],q]))
-						self.zeta_gamma[link] /= self.zeta[link]
+						self.zeta_gamma[link] = self.nu[link[0]] * self.nu_prime[link[1]] * np.tile(np.ones((self.nij[link],self.nij[link])),(self.D,1,1))
+						if self.D > 1: 
+							for q in range(self.D):
+								self.zeta_gamma[link][q] *= np.exp(-self.theta_tilde[link[0],q] * self.theta_prime_tilde[link[1],q] * Q_tilde[link]) * (Q_tilde[link] > 0) 
+								## self.zeta_gamma[link][q] /= zval
+						else: 
+							self.zeta_gamma[link][0] *= np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * Q_tilde[link]) * (Q_tilde[link] > 0)
+							self.zeta_gamma[link] = self.zeta_gamma[link][0] ## / zval
+				# Renormalise if necessary
+				norming_constant = 0
+				if self.main_effects: 
+					norming_constant += self.csi_alpha[link] + self.csi_beta[link]
+					if not self.poisson_me:
+						norming_constant += self.zeta_alpha[link].sum(axis=1) + self.zeta_beta[link].sum(axis=1) 
+				if self.interactions:
+					norming_constant += self.csi_gamma[link] 
+					if not self.poisson_int:
+						norming_constant += self.zeta_gamma[link].sum(axis=1)
+				if self.main_effects:
+					self.csi_alpha[link] /= norming_constant
+					self.csi_beta[link] /= norming_constant
+					if not self.poisson_me:
+						self.zeta_alpha[link] /= norming_constant.reshape(-1,1)
+						self.zeta_beta[link] /= norming_constant.reshape(-1,1)
+				if self.interactions:
+					self.csi_gamma[link] /= norming_constant
+					if not self.poisson_int:
+						self.zeta_gamma[link] /= np.tile(norming_constant.reshape(-1,1),len(norming_constant))
 			## Pre-allocate arrays for M-step
 			if self.main_effects:
 				num_alpha = np.zeros(self.n if not self.bipartite else self.n1)
