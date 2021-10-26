@@ -418,6 +418,8 @@ class meg_model:
 		## Dynamic adjacency matrix must be empty
 		for link in self.A:
 			self.A[link] = []
+			self.node_ts[link[0]] = np. array([])
+			self.node_ts_prime[link[1]] = np. array([])
 		## Initialise arrival times
 		t_star = 0
 		n_events = 0
@@ -450,7 +452,9 @@ class meg_model:
 			assignment = np.random.choice(len(links),p=probs)
 			if links[assignment] != 'Reject':
 				n_events += 1
-				self.A[links[assignment]] += [t_star]
+				self.A[links[assignment]] = np.append(self.A[links[assignment]],t_star)
+				self.node_ts[links[assignment][0]] = np.append(self.node_ts[links[assignment][0]], t_star)
+				self.node_ts_prime[links[assignment][1]] += [t_star]
 			if verbose:
 				print("\r+++ Number of simulated events +++ {} - Time: {:0.3f}".format(n_events,t_star), end="")
 		if verbose:
@@ -749,13 +753,6 @@ class meg_model:
 			raise ValueError('This EM algorithm can only be run for Hawkes and Poisson processes (not general Markov processes).')
 		if not self.directed:
 			raise ValueError('This EM algorithm can only be run for directed graphs (including bipartite graphs).')
-		## Setup likelihood calculations
-		self.likelihood_calculation_setup(verbose=verbose)
-		## Calculate psi
-		if ((self.interactions and self.hawkes_int) or (self.main_effects and self.hawkes_me)) and (not self.poisson_me or not self.poisson_int):
-			self.psi_calculation(verbose=verbose)
-		## Calculate zeta
-		self.zeta_calculation(verbose=verbose)
 		## Initialisation parameters
 		if self.main_effects:
 			self.alpha_tilde = np.copy(self.alpha)
@@ -812,7 +809,7 @@ class meg_model:
 			iteration += 1
 			## E-step: calculate responsibilities
 			for link in self.A:
-				zval = np.array(list(self.zeta[link].values()))
+				## zval = np.array(list(self.zeta[link].values()))
 				if self.main_effects:
 					self.csi_alpha[link] = self.alpha_tilde[link[0]] ## / zval
 					self.csi_beta[link] = self.beta_tilde[link[1]] ## / zval	
@@ -839,7 +836,7 @@ class meg_model:
 				if self.interactions:
 					norming_constant += self.csi_gamma[link] 
 					if not self.poisson_int:
-						norming_constant += self.zeta_gamma[link].sum(axis=1)
+						norming_constant = norming_constant + self.zeta_gamma[link].sum(axis=1)
 				if self.main_effects:
 					self.csi_alpha[link] /= norming_constant
 					self.csi_beta[link] /= norming_constant
@@ -850,7 +847,7 @@ class meg_model:
 					if self.D > 1:
 						self.csi_gamma[link] /= norming_constant.reshape(1,-1)
 					else:
-						self.csi_gamma[link] = self.csi_gamma[link][0] / norming_constant
+						self.csi_gamma[link] = self.csi_gamma[link] / norming_constant
 					if not self.poisson_int:
 						self.zeta_gamma[link] /= np.tile(norming_constant.reshape(-1,1),len(norming_constant))
 			## Pre-allocate arrays for M-step
@@ -932,7 +929,7 @@ class meg_model:
 				for link in self.A:
 					if self.interactions and not self.poisson_int:
 						den_nu_prime[link[1]] += self.nu_tilde[link[0]] * np.sum(1 - np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
-			self.nu_prime_tilde = num_nu_theta_prime / den_nu_prime
+				self.nu_prime_tilde = num_nu_theta_prime / den_nu_prime
 			## Loop on edges for denominators for phi, phi_prime, theta and theta_prime (only first part)
 			if (self.main_effects and not self.poisson_me) or (self.interactions and not self.poisson_int):
 				for link in self.A:
@@ -940,7 +937,6 @@ class meg_model:
 						den_phi[link[0]] += np.sum(np.multiply(Q[link], self.zeta_alpha[link]))
 						den_phi_prime[link[1]] += np.sum(np.multiply(Q_prime[link], self.zeta_beta[link]))
 					if self.interactions and not self.poisson_int:
-						den_nu_prime[link[1]] += self.nu_tilde[link[0]] * np.sum(1 - np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
 						if self.D > 1:
 							vv = np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]), axis=(1,2))
 							vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]])
@@ -988,6 +984,8 @@ class meg_model:
 					self.theta = self.theta_tilde - self.nu
 					self.nu_prime = np.multiply(self.nu_prime_tilde, self.theta_prime_tilde)
 					self.theta_prime = self.theta_prime_tilde - self.nu_prime
+			## Setup likelihood calculations
+			self.likelihood_calculation_setup(verbose=verbose)			
 			## Calculate likelihood for	evaluating convergence
 			if ((self.interactions and self.hawkes_int) or (self.main_effects and self.hawkes_me)) and (not self.poisson_me or not self.poisson_int):
 				self.psi_calculation(verbose=verbose)
