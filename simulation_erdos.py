@@ -145,7 +145,7 @@ for q in range(100):
                 m2.nu_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
                 m2.theta = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
                 m2.theta_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
-        ## Fit model to Enron data 
+        ## Fit model to the data 
         l = m2.optimise_meg(prior_penalisation=False, learning_rate=0.1, method='adam', max_iter=250, verbose=False, tolerance=1e-5)
         ## Calculate the p-values
         m2.pvalues()
