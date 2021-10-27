@@ -744,7 +744,7 @@ class meg_model:
 			print("")
 
 	## EM algorithm
-	def em_optimise(self, max_iter=100, verbose=False, tolerance=1e-4):
+	def em_optimise(self, max_iter=100, tolerance=1e-4):
 		if not self.tau_zero or not self.full_links:
 			raise ValueError('This EM algorithm can only be run when *all* links are *potentially* active. Explicit contraints on edges are in development.')
 		if self.main_effects and not self.hawkes_me:
@@ -921,9 +921,9 @@ class meg_model:
 			## Loop on nodes for denominators for phi and phi_prime
 			if self.main_effects and not self.poisson_me:
 				for node in self.node_ts:
-					den_phi[node] += (self.n2 if self.bipartite else self.n) * self.mu_tilde[node] * np.sum(1 - (self.T - self.node_ts[node]) * np.exp(-self.phi_tilde[node] * (self.T - self.node_ts[node])))
+					den_phi[node] += (self.n2 if self.bipartite else self.n) * self.mu_tilde[node] * np.sum((self.T - self.node_ts[node]) * np.exp(-self.phi_tilde[node] * (self.T - self.node_ts[node])))
 				for node in self.node_ts_prime:
-					den_phi_prime[node] += self.n * self.mu_prime_tilde[node] * np.sum(1 - (self.T - self.node_ts_prime[node]) * np.exp(-self.phi_prime_tilde[node] * (self.T - self.node_ts_prime[node])))
+					den_phi_prime[node] += self.n * self.mu_prime_tilde[node] * np.sum((self.T - self.node_ts_prime[node]) * np.exp(-self.phi_prime_tilde[node] * (self.T - self.node_ts_prime[node])))
 			## Loop for nu_prime
 			if self.interactions and not self.poisson_int:
 				for link in self.A:
@@ -940,12 +940,12 @@ class meg_model:
 						if self.D > 1:
 							vv = np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]), axis=(1,2))
 							vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]])
-							vv22 = 1 - np.multiply(self.T - self.A[link], np.exp(-np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
+							vv22 = np.multiply(self.T - self.A[link], np.exp(-np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
 							vv2 = np.sum(np.multiply(vv21, vv22))
 						else:
 							vv = np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]))
-							vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]])
-							vv22 = 1 - np.multiply(self.T - self.A[link], np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
+							vv21 = np.multiply(np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]]), self.theta_prime_tilde[link[1]])
+							vv22 = np.multiply(self.T - self.A[link], np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
 							vv2 = np.sum(np.multiply(vv21, vv22))
 						den_theta[link[0]] += vv + vv2
 						den_theta_prime[link[1]] += vv
@@ -959,11 +959,11 @@ class meg_model:
 			## Update theta_prime
 			if self.interactions and not self.poisson_int:
 				for link in self.A:
-					vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]])
+					vv21 = np.multiply(np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]]), self.theta_tilde[link[0]])
 					if self.D > 1:
-						vv22 = 1 - np.multiply(self.T - self.A[link], np.exp(-np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
+						vv22 = np.multiply(self.T - self.A[link], np.exp(-np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
 					else:
-						vv22 = 1 - np.multiply(self.T - self.A[link], np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
+						vv22 = np.multiply(self.T - self.A[link], np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
 					vv2 = np.sum(np.multiply(vv21, vv22))
 					den_theta_prime[link[1]] += vv2
 				self.theta_prime_tilde = num_nu_theta / den_theta_prime
@@ -977,20 +977,20 @@ class meg_model:
 					self.mu_prime = np.multiply(self.mu_prime_tilde, self.phi_prime_tilde)
 					self.phi_prime = self.phi_prime_tilde - self.mu_prime
 			if self.interactions:
-				self.gamma = np.copy(self.gamma_tilde)
-				self.gamma_prime = np.copy(self.gamma_prime_tilde)
+				self.gamma = np.copy(self.gamma_tilde) if self.D > 1 else self.gamma_tilde[:,0]
+				self.gamma_prime = np.copy(self.gamma_prime_tilde) if self.D > 1 else self.gamma_prime_tilde[:,0]
 				if not self.poisson_int:
 					self.nu = np.multiply(self.nu_tilde, self.theta_tilde)
 					self.theta = self.theta_tilde - self.nu
 					self.nu_prime = np.multiply(self.nu_prime_tilde, self.theta_prime_tilde)
 					self.theta_prime = self.theta_prime_tilde - self.nu_prime
 			## Setup likelihood calculations
-			self.likelihood_calculation_setup(verbose=verbose)			
+			self.likelihood_calculation_setup(verbose=False)			
 			## Calculate likelihood for	evaluating convergence
 			if ((self.interactions and self.hawkes_int) or (self.main_effects and self.hawkes_me)) and (not self.poisson_me or not self.poisson_int):
-				self.psi_calculation(verbose=verbose)
+				self.psi_calculation(verbose=False)
 			## Calculate zeta
-			self.zeta_calculation(verbose=verbose)
+			self.zeta_calculation(verbose=False)
 			## Calculate compensator
 			self.compensator_T()
 			## Use zeta to calculate the likelihood correctly
@@ -1011,6 +1011,8 @@ class meg_model:
 			## Calculate the criterion
 			if iteration > 2 and ll[-1] - ll[-2] > 0:
 				tcrit = (np.abs((ll[-1] - ll[-2]) / ll[-2]) > tolerance)
+		print("")
+		return ll
 
 	## Calculation of the compensator at time T (useful for the log-likelihood) - Approximation for the discrete process
 	def compensator_T(self):
