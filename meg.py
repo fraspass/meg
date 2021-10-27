@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import numpy as np
-from numpy import pi,log,exp,sqrt
+from numpy import pi,log,sqrt
 import math
 import copy
 from collections import Counter
@@ -11,17 +11,17 @@ import scipy.stats
 import numbers
 import warnings
 # warnings.filterwarnings("ignore")
-warnings.filterwarnings("error")
+# warnings.filterwarnings("error")
 
 ## Scaled exponential excitation functions
 
 # Function for the main effects
 def scaled_exponential(t,beta,theta):
-	return beta * exp(- (beta + theta) * t)
+	return beta * np.exp(-(beta + theta) * t)
 
 # Function for the interactions
 def scaled_exponential_prod(t,beta1,beta2,theta1,theta2):
-	return np.sum(beta1 * beta2 * exp(- (beta1 + theta1) * (beta2 + theta2) * t))
+	return np.sum(beta1 * beta2 * np.exp(-(beta1 + theta1) * (beta2 + theta2) * t))
 
 ## Vectorize the operation
 ## scaled_exponential_prod_vec = np.vectorize(scaled_exponential_prod)
@@ -385,9 +385,9 @@ class meg_model:
 			if self.interactions:
 				lambda_ij[link] += np.sum(self.gamma[link[0]] * self.gamma_prime[link[1]])
 				if not self.poisson_int:
-					after_first_edge_event = np.any(np.array(self.A[link]) < t)
+					after_first_edge_event = np.any(np.array(self.A[link]) <= t) if right_limit else np.any(np.array(self.A[link]) < t)
 					if after_first_edge_event:
-						max_edge_ind = np.max(np.where(np.array(self.A[link]) < t))
+						max_edge_ind = np.max(np.where(np.array(self.A[link]) <= t)) if right_limit else np.max(np.where(np.array(self.A[link]) < t))
 					if self.hawkes_int:
 						if not after_first_edge_event:
 							lambda_ij[link] += 0
@@ -425,7 +425,7 @@ class meg_model:
 		n_events = 0
 		while t_star < T:
 			## If the graph is discrete, include the current arrival time
-			_, lambda_star = self.intensity(t_star, right_limit=self.discrete)
+			_, lambda_star = self.intensity(t_star, right_limit=True)
 			## Propose new arrival time
 			if self.discrete:
 				t_star += math.floor(-math.log(np.random.uniform(size=1)) / lambda_star)
@@ -436,7 +436,7 @@ class meg_model:
 					print("")
 				break
 			## Calculate intensities for each edge
-			lambda_ij, _ = self.intensity(t_star)
+			lambda_ij, _ = self.intensity(t_star, right_limit=False)
 			## Calculate probabilities 
 			links = list(lambda_ij.keys())
 			probs = [x / lambda_star for x in list(lambda_ij.values())]
@@ -454,7 +454,7 @@ class meg_model:
 				n_events += 1
 				self.A[links[assignment]] = np.append(self.A[links[assignment]],t_star)
 				self.node_ts[links[assignment][0]] = np.append(self.node_ts[links[assignment][0]], t_star)
-				self.node_ts_prime[links[assignment][1]] += [t_star]
+				self.node_ts_prime[links[assignment][1]] += np.append(self.node_ts_prime[links[assignment][1]], t_star)
 			if verbose:
 				print("\r+++ Number of simulated events +++ {} - Time: {:0.3f}".format(n_events,t_star), end="")
 		if verbose:
