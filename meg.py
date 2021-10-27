@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import sys
 import numpy as np
-from numpy import pi,log,sqrt
 import math
 import copy
 from collections import Counter
@@ -2198,13 +2197,13 @@ class meg_model:
 				if self.nij[link] > nij_old[link]:
 					self.pvals_test[link] = np.zeros(self.nij[link] - nij_old[link])
 				if nij_old[link] > 0:
-					self.pvals_train[link][0] = 0 if not self.tau_zero else 1 - exp(-self.Lambda[link][0])
+					self.pvals_train[link][0] = 0 if not self.tau_zero else 1 - np.exp(-self.Lambda[link][0])
 					self.pvals_train[link][1:] = 1 - np.exp(-np.diff(self.Lambda[link][:nij_old[link]]))
 					self.pvals_test[link] = 1 - np.exp(-np.diff(self.Lambda[link][(nij_old[link]-1):]))
 				else:
-					self.pvals_test[link][0] = 0 if not self.tau_zero else 1 - exp(-self.Lambda[link][0])
+					self.pvals_test[link][0] = 0 if not self.tau_zero else 1 - np.exp(-self.Lambda[link][0])
 					self.pvals_test[link][1:] = 1 - np.exp(-np.diff(self.Lambda[link]))
 			else:
 				self.pvals_train[link] = np.zeros(self.nij[link]) 
-				self.pvals_train[link][0] = 0 if not self.tau_zero else 1 - exp(-self.Lambda[link][0])
+				self.pvals_train[link][0] = 0 if not self.tau_zero else 1 - np.exp(-self.Lambda[link][0])
 				self.pvals_train[link][1:] = 1 - np.exp(-np.diff(self.Lambda[link]))
