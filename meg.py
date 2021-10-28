@@ -743,7 +743,7 @@ class meg_model:
 			print("")
 
 	## EM algorithm
-	def em_optimise(self, max_iter=100, tolerance=1e-4):
+	def em_optimise(self, max_iter=100, niter=1, tolerance=1e-4):
 		if not self.tau_zero or not self.full_links:
 			raise ValueError('This EM algorithm can only be run when *all* links are *potentially* active. Explicit contraints on edges are in development.')
 		if self.main_effects and not self.hawkes_me:
@@ -818,14 +818,14 @@ class meg_model:
 				if self.interactions:
 					self.csi_gamma[link] = self.gamma_tilde[link[0]] * self.gamma_prime_tilde[link[1]] ## / zval
 					if not self.poisson_int:
-						self.zeta_gamma[link] = self.nu[link[0]] * self.nu_prime[link[1]] * np.tile(np.ones((self.nij[link],self.nij[link])),(self.D,1,1))
 						if self.D > 1: 
+							self.zeta_gamma[link] = self.nu[link[0]] * self.nu_prime[link[1]] * np.tile(np.ones((self.nij[link],self.nij[link])),(self.D,1,1))
 							for q in range(self.D):
 								self.zeta_gamma[link][q] *= np.exp(-self.theta_tilde[link[0],q] * self.theta_prime_tilde[link[1],q] * Q_tilde[link]) * (Q_tilde[link] > 0) 
 								## self.zeta_gamma[link][q] /= zval
 						else: 
-							self.zeta_gamma[link][0] *= np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * Q_tilde[link]) * (Q_tilde[link] > 0)
-							self.zeta_gamma[link] = self.zeta_gamma[link][0] ## / zval
+							self.zeta_gamma[link] = self.nu[link[0]] * self.nu_prime[link[1]]
+							self.zeta_gamma[link] *= np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * Q_tilde[link]) * (Q_tilde[link] > 0)
 				# Renormalise if necessary
 				norming_constant = 0
 				if self.main_effects: 
@@ -856,28 +856,23 @@ class meg_model:
 				if not self.poisson_me:
 					num_mu_phi = np.zeros(self.n if not self.bipartite else self.n1)
 					den_mu = np.zeros(self.n if not self.bipartite else self.n1)
-					den_phi = np.zeros(self.n if not self.bipartite else self.n1)
 					num_mu_phi_prime = np.zeros(self.n if not self.bipartite else self.n2)
 					den_mu_prime = np.zeros(self.n if not self.bipartite else self.n2)
-					den_phi_prime = np.zeros(self.n if not self.bipartite else self.n2)
 			if self.interactions:
 				num_gamma = np.zeros((self.n if not self.bipartite else self.n1, self.D))
+				num_gamma_prime = np.zeros((self.n if not self.bipartite else self.n2, self.D))
 				den_gamma = np.sum(self.gamma_prime_tilde * self.T)
 				if not self.poisson_int:
 					if self.D > 1:
 						num_nu_theta = np.zeros((self.n if not self.bipartite else self.n1, self.D))
 						den_nu = np.zeros((self.n if not self.bipartite else self.n1, self.D))
-						den_theta = np.zeros((self.n if not self.bipartite else self.n1, self.D))
 						num_nu_theta_prime = np.zeros((self.n if not self.bipartite else self.n2, self.D))
 						den_nu_prime = np.zeros((self.n if not self.bipartite else self.n2, self.D))
-						den_theta_prime = np.zeros((self.n if not self.bipartite else self.n2, self.D))
 					else:
 						num_nu_theta = np.zeros(self.n if not self.bipartite else self.n1)
 						den_nu = np.zeros(self.n if not self.bipartite else self.n1)
-						den_theta = np.zeros(self.n if not self.bipartite else self.n1)
 						num_nu_theta_prime = np.zeros(self.n if not self.bipartite else self.n2)
 						den_nu_prime = np.zeros(self.n if not self.bipartite else self.n2)
-						den_theta_prime = np.zeros(self.n if not self.bipartite else self.n2)
 			## Loop over links for numerators for most parameters except theta
 			for link in self.A:
 				if self.main_effects:
@@ -888,6 +883,7 @@ class meg_model:
 						num_mu_phi_prime[link[1]] += np.sum(self.zeta_beta[link])
 				if self.interactions:
 					num_gamma[link[0]] += np.sum(self.csi_gamma[link])
+					num_gamma_prime[link[1]] += np.sum(self.csi_gamma[link])
 					if not self.poisson_int:
 						if self.D > 1:
 							num_nu_theta[link[0]] += np.sum(self.zeta_gamma[link],axis=(1,2))
@@ -905,7 +901,7 @@ class meg_model:
 			if self.interactions:
 				self.gamma_tilde = num_gamma / den_gamma
 				den_gamma_prime = np.sum(self.gamma_tilde * self.T)
-				self.gamma_prime_tilde = num_gamma / den_gamma_prime
+				self.gamma_prime_tilde = num_gamma_prime / den_gamma_prime
 			## Update mu and mu_prime
 			if self.main_effects and not self.poisson_me:
 				for i in self.node_ts:
@@ -917,55 +913,74 @@ class meg_model:
 			## Update nu
 			if self.interactions and not self.poisson_int:
 				self.nu_tilde = num_nu_theta / den_nu
-			## Loop on nodes for denominators for phi and phi_prime
-			if self.main_effects and not self.poisson_me:
-				for node in self.node_ts:
-					den_phi[node] += (self.n2 if self.bipartite else self.n) * self.mu_tilde[node] * np.sum((self.T - self.node_ts[node]) * np.exp(-self.phi_tilde[node] * (self.T - self.node_ts[node])))
-				for node in self.node_ts_prime:
-					den_phi_prime[node] += self.n * self.mu_prime_tilde[node] * np.sum((self.T - self.node_ts_prime[node]) * np.exp(-self.phi_prime_tilde[node] * (self.T - self.node_ts_prime[node])))
-			## Loop for nu_prime
+			## Update nu_prime
 			if self.interactions and not self.poisson_int:
 				for link in self.A:
 					if self.interactions and not self.poisson_int:
 						den_nu_prime[link[1]] += self.nu_tilde[link[0]] * np.sum(1 - np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
 				self.nu_prime_tilde = num_nu_theta_prime / den_nu_prime
-			## Loop on edges for denominators for phi, phi_prime, theta and theta_prime (only first part)
+			## Loop for phi, phi_prime, theta and theta_prime (only one part)
 			if (self.main_effects and not self.poisson_me) or (self.interactions and not self.poisson_int):
-				for link in self.A:
+				for _ in range(niter):
 					if self.main_effects and not self.poisson_me:
-						den_phi[link[0]] += np.sum(np.multiply(Q[link], self.zeta_alpha[link]))
-						den_phi_prime[link[1]] += np.sum(np.multiply(Q_prime[link], self.zeta_beta[link]))
+						den_phi = np.zeros(self.n if not self.bipartite else self.n1)
+						den_phi_prime = np.zeros(self.n if not self.bipartite else self.n2)
 					if self.interactions and not self.poisson_int:
 						if self.D > 1:
-							vv = np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]), axis=(1,2))
-							vv21 = np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]])
+							den_theta = np.zeros((self.n if not self.bipartite else self.n1, self.D))
+						else:
+							den_theta = np.zeros(self.n if not self.bipartite else self.n1)
+					## Loop on nodes for denominators for phi and phi_prime
+					if self.main_effects and not self.poisson_me:
+						for node in self.node_ts:
+							den_phi[node] += (self.n2 if self.bipartite else self.n) * self.mu_tilde[node] * np.sum((self.T - self.node_ts[node]) * np.exp(-self.phi_tilde[node] * (self.T - self.node_ts[node])))
+						for node in self.node_ts_prime:
+							den_phi_prime[node] += self.n * self.mu_prime_tilde[node] * np.sum((self.T - self.node_ts_prime[node]) * np.exp(-self.phi_prime_tilde[node] * (self.T - self.node_ts_prime[node])))
+					## Loop on edges for denominators for phi, phi_prime, theta and theta_prime (only first part)
+					for link in self.A:
+						if self.main_effects and not self.poisson_me:
+							den_phi[link[0]] += np.sum(np.multiply(Q[link], self.zeta_alpha[link]))
+							den_phi_prime[link[1]] += np.sum(np.multiply(Q_prime[link], self.zeta_beta[link]))
+						if self.interactions and not self.poisson_int:
+							if self.D > 1:
+								vv = np.multiply(self.theta_prime_tilde[link[1]], np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]), axis=(1,2)))
+								vv21 = np.multiply(np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]]), self.theta_prime_tilde[link[1]])
+								vv22 = np.multiply(self.T - self.A[link], np.exp(-np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
+								vv2 = np.sum(np.multiply(vv21, vv22))
+							else:
+								vv = self.theta_prime_tilde[link[1]] * np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]))
+								vv21 = self.nu_tilde[link[0]] * self.nu_prime_tilde[link[1]] * self.theta_prime_tilde[link[1]]
+								vv22 = np.multiply(self.T - self.A[link], np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
+								vv2 = vv21 * np.sum(vv22)
+							den_theta[link[0]] += vv + vv2
+					## Update phi and phi_prime
+					if self.main_effects and not self.poisson_me:
+						self.phi_tilde = num_mu_phi / den_phi
+						self.phi_prime_tilde = num_mu_phi_prime / den_phi_prime
+					## Update theta
+					if self.interactions and not self.poisson_int:
+						self.theta_tilde = num_nu_theta / den_theta
+			## Update theta_prime
+			if self.interactions and not self.poisson_int:
+				if self.D > 1:
+					den_theta_prime = np.zeros((self.n if not self.bipartite else self.n2, self.D))
+				else:
+					den_theta_prime = np.zeros(self.n if not self.bipartite else self.n2)
+				for _ in range(niter):
+					for link in self.A:
+						if self.D > 1:
+							vv = np.multiply(self.theta_tilde[link[0]], np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]), axis=(1,2)))
+							vv21 = np.multiply(np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]]), self.theta_tilde[link[0]])
 							vv22 = np.multiply(self.T - self.A[link], np.exp(-np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
 							vv2 = np.sum(np.multiply(vv21, vv22))
 						else:
-							vv = np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]))
-							vv21 = np.multiply(np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]]), self.theta_prime_tilde[link[1]])
+							vv = self.theta_tilde[link[0]] * np.sum(np.multiply(Q_tilde[link], self.zeta_gamma[link]))
+							vv21 = self.nu_tilde[link[0]] * self.nu_prime_tilde[link[1]] * self.theta_tilde[link[0]]
 							vv22 = np.multiply(self.T - self.A[link], np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
-							vv2 = np.sum(np.multiply(vv21, vv22))
-						den_theta[link[0]] += vv + vv2
-						den_theta_prime[link[1]] += vv
-				## Update phi and phi_prime
-				if self.main_effects and not self.poisson_me:
-					self.phi_tilde = num_mu_phi / den_phi
-					self.phi_prime_tilde = num_mu_phi_prime / den_phi_prime
-				## Update theta
-				if self.interactions and not self.poisson_int:
-					self.theta_tilde = num_nu_theta / den_theta
-			## Update theta_prime
-			if self.interactions and not self.poisson_int:
-				for link in self.A:
-					vv21 = np.multiply(np.multiply(self.nu_tilde[link[0]], self.nu_prime_tilde[link[1]]), self.theta_tilde[link[0]])
-					if self.D > 1:
-						vv22 = np.multiply(self.T - self.A[link], np.exp(-np.outer(np.multiply(self.theta_tilde[link[0]], self.theta_prime_tilde[link[1]]), self.T - self.A[link])))
-					else:
-						vv22 = np.multiply(self.T - self.A[link], np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
-					vv2 = np.sum(np.multiply(vv21, vv22))
-					den_theta_prime[link[1]] += vv2
-				self.theta_prime_tilde = num_nu_theta_prime / den_theta_prime
+							vv2 = vv21 * np.sum(vv22)
+						den_theta_prime[link[1]] += vv + vv2
+					## Update theta_prime_tilde
+					self.theta_prime_tilde = num_nu_theta_prime / den_theta_prime
 			## Convert to likelihood parametrisation
 			if self.main_effects:
 				self.alpha = np.copy(self.alpha_tilde)
