@@ -965,7 +965,7 @@ class meg_model:
 						vv22 = np.multiply(self.T - self.A[link], np.exp(-self.theta_tilde[link[0]] * self.theta_prime_tilde[link[1]] * (self.T - self.A[link])))
 					vv2 = np.sum(np.multiply(vv21, vv22))
 					den_theta_prime[link[1]] += vv2
-				self.theta_prime_tilde = num_nu_theta / den_theta_prime
+				self.theta_prime_tilde = num_nu_theta_prime / den_theta_prime
 			## Convert to likelihood parametrisation
 			if self.main_effects:
 				self.alpha = np.copy(self.alpha_tilde)
