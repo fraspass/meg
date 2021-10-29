@@ -33,10 +33,6 @@ if dest_folder != '' and not os.path.exists(dest_folder):
 ## Set the seed
 np.random.seed(117)
 
-## Build the MEG model
-ks_scores = {}
-ks_pvals = {}
-
 ## Empty matrix
 A = {}
 for i in range(n):
@@ -64,4 +60,4 @@ for i in range(nsim):
     G[i] = m.A
 
 ## Save dictionary
-np.save(dest_folder + '/meg_simulate_' + S + '.npy', G) 
+np.save(dest_folder + '/meg_simulate_' + str(S) + '.npy', G) 
