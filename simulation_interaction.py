@@ -12,8 +12,8 @@ parser.add_argument("-T", type=int, dest="T", default=10000000, const=True, narg
 	help="Integer: maximum time of simulation. Default: T=10000000.")
 parser.add_argument("-M", type=int, dest="M", default=3000, const=True, nargs="?",\
 	help="Integer: number of simulated events. Default: M=3000.")
-parser.add_argument("-N", type=int, dest="N", default=1, const=True, nargs="?",\
-	help="Integer: number of simulated graphs. Default: N=1.")
+parser.add_argument("-N", type=int, dest="N", default=10, const=True, nargs="?",\
+	help="Integer: number of simulated graphs. Default: N=10.")
 parser.add_argument("-S", type=int, dest="S", default=117, const=True, nargs="?",\
 	help="Integer: seed for the simulation. Default: S=117.")
 
