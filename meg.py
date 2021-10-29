@@ -417,8 +417,8 @@ class meg_model:
 		## Dynamic adjacency matrix must be empty
 		for link in self.A:
 			self.A[link] = []
-			self.node_ts[link[0]] = np. array([])
-			self.node_ts_prime[link[1]] = np. array([])
+			self.node_ts[link[0]] = np.array([])
+			self.node_ts_prime[link[1]] = np.array([])
 		## Initialise arrival times
 		t_star = 0
 		n_events = 0
@@ -453,7 +453,7 @@ class meg_model:
 				n_events += 1
 				self.A[links[assignment]] = np.append(self.A[links[assignment]],t_star)
 				self.node_ts[links[assignment][0]] = np.append(self.node_ts[links[assignment][0]], t_star)
-				self.node_ts_prime[links[assignment][1]] += np.append(self.node_ts_prime[links[assignment][1]], t_star)
+				self.node_ts_prime[links[assignment][1]] = np.append(self.node_ts_prime[links[assignment][1]], t_star)
 			if verbose:
 				print("\r+++ Number of simulated events +++ {} - Time: {:0.3f}".format(n_events,t_star), end="")
 		if verbose:
@@ -743,7 +743,7 @@ class meg_model:
 			print("")
 
 	## EM algorithm
-	def em_optimise(self, max_iter=100, niter=1, tolerance=1e-4):
+	def em_optimise(self, max_iter=100, niter=1, tolerance=1e-4, verbose=True):
 		if not self.tau_zero or not self.full_links:
 			raise ValueError('This EM algorithm can only be run when *all* links are *potentially* active. Explicit contraints on edges are in development.')
 		if self.main_effects and not self.hawkes_me:
@@ -804,7 +804,8 @@ class meg_model:
 		tcrit = True
 		## Loop until the tolerance criterion is satisfied
 		while tcrit and iteration < max_iter:
-			print("\r+++ Iteration {:d} +++".format(iteration+1),end="")
+			if verbose:
+				print("\r+++ Iteration {:d} +++".format(iteration+1),end="")
 			iteration += 1
 			## E-step: calculate responsibilities
 			for link in self.A:
@@ -1025,7 +1026,8 @@ class meg_model:
 			## Calculate the criterion
 			if iteration > 2 and ll[-1] - ll[-2] > 0:
 				tcrit = (np.abs((ll[-1] - ll[-2]) / ll[-2]) > tolerance)
-		print("")
+		if verbose:
+			print("")
 		return ll
 
 	## Calculation of the compensator at time T (useful for the log-likelihood) - Approximation for the discrete process
@@ -1491,7 +1493,7 @@ class meg_model:
 
 	## Main function for sequential optimisation of the MEG model
 	def optimise_meg(self, learning_rate=0.01, method='standard', rho=0.9, rho2=0.99, max_iter=100, tolerance=1e-4, 
-						ada_epsilon=1e-8, prior_penalisation=False, verbose=True):
+						ada_epsilon=1e-8, prior_penalisation=False, verbose=True, iter_print=True):
 		## The learning rate corresponds to the parameter rho in AdaDelta (AdaDelta does not require the specification of a learning rate)
 		if not isinstance(learning_rate, numbers.Number) or learning_rate <= 0:
 			return ValueError("The learning rate should be a positive real number.")
@@ -1597,7 +1599,8 @@ class meg_model:
 		## Initalise vector containing the log-likelihoods
 		ll = []
 		## Iterate the optimisation
-		print("+++ Iteration 1 +++",end="")
+		if iter_print:
+			print("+++ Iteration 1 +++",end="")
 		## Setup likelihood calculations
 		self.likelihood_calculation_setup(verbose=verbose)
 		## Calculate psi
@@ -1611,7 +1614,8 @@ class meg_model:
 		tcrit = True
 		## Loop until the tolerance criterion is satisfied
 		while tcrit and iteration < max_iter:
-			print("\r+++ Iteration {:d} +++".format(iteration+1),end="")
+			if iter_print:
+				print("\r+++ Iteration {:d} +++".format(iteration+1),end="")
 			iteration += 1
 			## Update the gradient
 			self.gradient(prior_penalisation=prior_penalisation,verbose=verbose)
@@ -2067,7 +2071,8 @@ class meg_model:
 			## Calculate the criterion
 			if iteration > 2 and ll[-1] - ll[-2] > 0:
 				tcrit = (np.abs((ll[-1] - ll[-2]) / ll[-2]) > tolerance)
-		print("")
+		if iter_print:
+			print("")
 		return ll
 
 	## Calculation of the compensator for any t (useful for the p-values) - Approximation for the discrete process
