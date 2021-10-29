@@ -39,23 +39,22 @@ for i in range(n):
     for j in range(n):
         A[i,j] = [1]
 
-## MEG model setup for simulation
-m = meg.meg_model(A, tau_zero=True, full_links=True, verbose=False, discrete=False, force_square=True, evaluate_directed=False)
-m.specification(main_effects=False, interactions=True, poisson_me=False, poisson_int=False, hawkes_me=True, hawkes_int=True, D=1, verbose=False)
-m.prior_initialisation()
-
-## True values of the parameters
-m.gamma = np.array([0.1,0.5])
-m.gamma_prime = np.array([0.1,0.3])
-m.nu = np.array([0.8,0.4])
-m.nu_prime = np.array([0.5,0.25])
-m.theta = np.array([0.2,0.6])
-m.theta_prime = np.array([0.5,0.75])
-
 ## Simulate 
 np.random.seed(S)
 G = {}
 for i in range(nsim):
+    ## MEG model setup for simulation
+    m = meg.meg_model(A, tau_zero=True, full_links=True, verbose=False, discrete=False, force_square=True, evaluate_directed=False)
+    m.specification(main_effects=False, interactions=True, poisson_me=False, poisson_int=False, hawkes_me=True, hawkes_int=True, D=1, verbose=False)
+    m.prior_initialisation()
+    ## True values of the parameters
+    m.gamma = np.array([0.1,0.5])
+    m.gamma_prime = np.array([0.1,0.3])
+    m.nu = np.array([0.8,0.4])
+    m.nu_prime = np.array([0.5,0.25])
+    m.theta = np.array([0.2,0.6])
+    m.theta_prime = np.array([0.5,0.75])
+    ## Simulate
     m.simulate(T=T_sim, m=M, copy_dict=False, verbose=True)
     G[i] = m.A
 
