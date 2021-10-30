@@ -97,12 +97,12 @@ for j in G:
     ks_pval_ga += [stats.kstest(pp, 'uniform')[1]]
 
 ## Save output
-np.save('simulation_main/loglik_ga.npy', max_lik_ga); np.save('simulation_main/loglik_em.npy', max_lik_em)
-np.save('simulation_main/ks_score_ga.npy', ks_score_ga); np.save('simulation_main/ks_score_em.npy', ks_score_em)
-np.save('simulation_main/ks_pval_ga.npy', ks_pval_ga); np.save('simulation_main/ks_pval_em.npy', ks_pval_em)
-np.save('simulation_main/gamma_ga.npy', gamma_ga); np.save('simulation_main/gamma_em.npy', gamma_em)
-np.save('simulation_main/gamma_prime_ga.npy', gamma_prime_ga); np.save('simulation_main/gamma_prime_em.npy', gamma_prime_em)
-np.save('simulation_main/nu_ga.npy', nu_ga); np.save('simulation_main/nu_em.npy', nu_em)
-np.save('simulation_main/nu_prime_ga.npy', nu_prime_ga); np.save('simulation_main/nu_prime_em.npy', nu_prime_em)
-np.save('simulation_main/theta_ga.npy', theta_ga); np.save('simulation_main/theta_em.npy', theta_em)
-np.save('simulation_main/theta_prime_ga.npy', theta_prime_ga); np.save('simulation_main/theta_prime_em.npy', theta_prime_em)
+np.save('simulation_inter/loglik_ga.npy', max_lik_ga); np.save('simulation_inter/loglik_em.npy', max_lik_em)
+np.save('simulation_inter/ks_score_ga.npy', ks_score_ga); np.save('simulation_inter/ks_score_em.npy', ks_score_em)
+np.save('simulation_inter/ks_pval_ga.npy', ks_pval_ga); np.save('simulation_inter/ks_pval_em.npy', ks_pval_em)
+np.save('simulation_inter/gamma_ga.npy', gamma_ga); np.save('simulation_inter/gamma_em.npy', gamma_em)
+np.save('simulation_inter/gamma_prime_ga.npy', gamma_prime_ga); np.save('simulation_inter/gamma_prime_em.npy', gamma_prime_em)
+np.save('simulation_inter/nu_ga.npy', nu_ga); np.save('simulation_inter/nu_em.npy', nu_em)
+np.save('simulation_inter/nu_prime_ga.npy', nu_prime_ga); np.save('simulation_inter/nu_prime_em.npy', nu_prime_em)
+np.save('simulation_inter/theta_ga.npy', theta_ga); np.save('simulation_inter/theta_em.npy', theta_em)
+np.save('simulation_inter/theta_prime_ga.npy', theta_prime_ga); np.save('simulation_inter/theta_prime_em.npy', theta_prime_em)
