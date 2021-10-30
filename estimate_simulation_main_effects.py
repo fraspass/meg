@@ -9,7 +9,7 @@ from scipy import stats
 G = {}
 j = 0
 for f in np.sort(glob.glob('simulation_main/meg_*')):
-    A = np.load('simulation_main/'+f,allow_pickle='TRUE').item()
+    A = np.load(f,allow_pickle='TRUE').item()
     for index in A:
         G[j] = A[index]
         j += 1
