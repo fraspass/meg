@@ -30,9 +30,6 @@ S = args.S
 if dest_folder != '' and not os.path.exists(dest_folder):
     os.mkdir(dest_folder)
 
-## Set the seed
-np.random.seed(117)
-
 ## Empty matrix
 A = {}
 for i in range(n):

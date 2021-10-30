@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 import meg
-import os, argparse
+import glob, argparse
 from collections import Counter
 import numpy as np
 from scipy import stats
@@ -8,7 +8,7 @@ from scipy import stats
 ## Parse arguments
 G = {}
 j = 0
-for f in np.sort(os.listdir('simulation_main/')):
+for f in np.sort(glob.glob('simulation_main/meg_*')):
     A = np.load('simulation_main/'+f,allow_pickle='TRUE').item()
     for index in A:
         G[j] = A[index]
