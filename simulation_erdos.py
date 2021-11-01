@@ -68,7 +68,10 @@ np.random.seed(117)
 ## Build the MEG model
 ks_scores = {}
 ks_pvals = {}
+graphs = {}
 
+## 
+estimate = False
 for q in range(100):
     ## Simulate adjacency matrix
     A = {}
@@ -111,53 +114,56 @@ for q in range(100):
     ## Simulate data
     m.simulate(T=T_sim, m=M, copy_dict=False, verbose=True)
     G = m.A
-    ks_scores[q] = []
-    ks_pvals[q] = []
-    for _ in range(1):
-        print('Simulation ', q, '\t', 'Initialisation ', _+1, sep='')
-        m2 = meg.meg_model(G, T=T_sim, tau_zero=True, verbose=False, discrete=False, force_square=True)
-        m2.specification(main_effects=main_effects, interactions=interactions, 
-                    poisson_me=poisson_main_effects, poisson_int=poisson_interactions,
-                    hawkes_me=hawkes_main_effects, hawkes_int=hawkes_interactions, 
-                    D=D, verbose=False)
-        m2.prior_initialisation()
-        ## Initialise all to the same values
-        m2.alpha = np.random.uniform(low=1e-5, high=1e-4, size=m.n)
-        m2.beta = np.random.uniform(low=1e-5, high=1e-4, size=m.n)
-        if not poisson_main_effects:
-            m2.mu = np.random.uniform(low=1e-5, high=1e-3, size=m.n)
-            m2.mu_prime = np.random.uniform(low=1e-5, high=1e-3, size=m.n) 
-            m2.phi = np.random.uniform(low=1e-5, high=1e-3, size=m.n)
-            m2.phi_prime = np.random.uniform(low=1e-5, high=1e-3, size=m.n)
-        if m2.D == 1:
-            m2.gamma = np.random.uniform(low=1e-5, high=1e-1, size=m.n)
-            m2.gamma_prime = np.random.uniform(low=1e-5, high=1e-1, size=m.n)
-            if not poisson_interactions:
-                m2.nu = np.random.uniform(low=1e-2, high=1e1, size=m.n)
-                m2.nu_prime = np.random.uniform(low=1e-2, high=1e1, size=m.n)
-                m2.theta = np.random.uniform(low=1e-2, high=1e1, size=m.n)
-                m2.theta_prime = np.random.uniform(low=1e-2, high=1e1, size=m.n)
-        else:
-            m2.gamma = np.random.uniform(low=1e-5, high=1e-1, size=(m.n,m.D))
-            m2.gamma_prime = np.random.uniform(low=1e-5, high=1e-1, size=(m.n,m.D))
-            if not poisson_interactions:
-                m2.nu = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
-                m2.nu_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
-                m2.theta = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
-                m2.theta_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
-        ## Fit model to the data 
-        l = m2.optimise_meg(prior_penalisation=False, learning_rate=0.1, method='adam', max_iter=250, verbose=False, tolerance=1e-5)
-        ## Calculate the p-values
-        m2.pvalues()
-        pp = [p for x in m2.pvals_train.values() for p in list(x)]
-        ## Calculate the KS scores
-        ks_scores[q] += [stats.kstest(pp, 'uniform')[0]]
-        ks_pvals[q] += [stats.kstest(pp, 'uniform')[1]]
+    graphs[q] = G
+    if estimate:
+        ks_scores[q] = []
+        ks_pvals[q] = []
+        for _ in range(1):
+            print('Simulation ', q, '\t', 'Initialisation ', _+1, sep='')
+            m2 = meg.meg_model(G, T=T_sim, tau_zero=True, verbose=False, discrete=False, force_square=True)
+            m2.specification(main_effects=main_effects, interactions=interactions, 
+                        poisson_me=poisson_main_effects, poisson_int=poisson_interactions,
+                        hawkes_me=hawkes_main_effects, hawkes_int=hawkes_interactions, 
+                        D=D, verbose=False)
+            m2.prior_initialisation()
+            ## Initialise all to the same values
+            m2.alpha = np.random.uniform(low=1e-5, high=1e-4, size=m.n)
+            m2.beta = np.random.uniform(low=1e-5, high=1e-4, size=m.n)
+            if not poisson_main_effects:
+                m2.mu = np.random.uniform(low=1e-5, high=1e-3, size=m.n)
+                m2.mu_prime = np.random.uniform(low=1e-5, high=1e-3, size=m.n) 
+                m2.phi = np.random.uniform(low=1e-5, high=1e-3, size=m.n)
+                m2.phi_prime = np.random.uniform(low=1e-5, high=1e-3, size=m.n)
+            if m2.D == 1:
+                m2.gamma = np.random.uniform(low=1e-5, high=1e-1, size=m.n)
+                m2.gamma_prime = np.random.uniform(low=1e-5, high=1e-1, size=m.n)
+                if not poisson_interactions:
+                    m2.nu = np.random.uniform(low=1e-2, high=1e1, size=m.n)
+                    m2.nu_prime = np.random.uniform(low=1e-2, high=1e1, size=m.n)
+                    m2.theta = np.random.uniform(low=1e-2, high=1e1, size=m.n)
+                    m2.theta_prime = np.random.uniform(low=1e-2, high=1e1, size=m.n)
+            else:
+                m2.gamma = np.random.uniform(low=1e-5, high=1e-1, size=(m.n,m.D))
+                m2.gamma_prime = np.random.uniform(low=1e-5, high=1e-1, size=(m.n,m.D))
+                if not poisson_interactions:
+                    m2.nu = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
+                    m2.nu_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
+                    m2.theta = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
+                    m2.theta_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
+            ## Fit model to the data 
+            l = m2.optimise_meg(prior_penalisation=False, learning_rate=0.1, method='adam', max_iter=250, verbose=False, tolerance=1e-5)
+            ## Calculate the p-values
+            m2.pvalues()
+            pp = [p for x in m2.pvals_train.values() for p in list(x)]
+            ## Calculate the KS scores
+            ks_scores[q] += [stats.kstest(pp, 'uniform')[0]]
+            ks_pvals[q] += [stats.kstest(pp, 'uniform')[1]]
 
-## Save files
-scores = [p for x in ks_scores.values() for p in list(x)]
-pvals = [p for x in ks_pvals.values() for p in list(x)]
-
-## Save files
-np.savetxt(dest_folder + '/ks_scores.csv', scores, fmt='%.20f', delimiter=',')
-np.savetxt(dest_folder + '/ks_pvals.csv', pvals, fmt='%.20f', delimiter=',')
+np.save(dest_folder + '/graphs.npy', graph) 
+if estimate:
+    ## Save files
+    scores = [p for x in ks_scores.values() for p in list(x)]
+    pvals = [p for x in ks_pvals.values() for p in list(x)]
+    ## Save files
+    np.savetxt(dest_folder + '/ks_scores.csv', scores, fmt='%.20f', delimiter=',')
+    np.savetxt(dest_folder + '/ks_pvals.csv', pvals, fmt='%.20f', delimiter=',')
