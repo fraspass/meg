@@ -115,12 +115,12 @@ for j in G:
     ks_pval_ga += [stats.kstest(pp, 'uniform')[1]]
 
 ## Save output
-np.save('simulation_main/estimation_'+str(n)+'loglik_ga.npy', max_lik_ga); np.save('simulation_main/estimation_'+str(n)+'loglik_em.npy', max_lik_em)
-np.save('simulation_main/estimation_'+str(n)+'ks_score_ga.npy', ks_score_ga); np.save('simulation_main/estimation_'+str(n)+'ks_score_em.npy', ks_score_em)
-np.save('simulation_main/estimation_'+str(n)+'ks_pval_ga.npy', ks_pval_ga); np.save('simulation_main/estimation_'+str(n)+'ks_pval_em.npy', ks_pval_em)
-np.save('simulation_main/estimation_'+str(n)+'alpha_ga.npy', alpha_ga); np.save('simulation_main/estimation_'+str(n)+'alpha_em.npy', alpha_em)
-np.save('simulation_main/estimation_'+str(n)+'beta_ga.npy', beta_ga); np.save('simulation_main/estimation_'+str(n)+'beta_em.npy', beta_em)
-np.save('simulation_main/estimation_'+str(n)+'mu_ga.npy', mu_ga); np.save('simulation_main/estimation_'+str(n)+'mu_em.npy', mu_em)
-np.save('simulation_main/estimation_'+str(n)+'mu_prime_ga.npy', mu_prime_ga); np.save('simulation_main/estimation_'+str(n)+'mu_prime_em.npy', mu_prime_em)
-np.save('simulation_main/estimation_'+str(n)+'phi_ga.npy', phi_ga); np.save('simulation_main/estimation_'+str(n)+'phi_em.npy', phi_em)
-np.save('simulation_main/estimation_'+str(n)+'phi_prime_ga.npy', phi_prime_ga); np.save('simulation_main/estimation_'+str(n)+'phi_prime_em.npy', phi_prime_em)
+np.save('simulation_main/estimation_'+str(n)+'_loglik_ga.npy', max_lik_ga); np.save('simulation_main/estimation_'+str(n)+'_loglik_em.npy', max_lik_em)
+np.save('simulation_main/estimation_'+str(n)+'_ks_score_ga.npy', ks_score_ga); np.save('simulation_main/estimation_'+str(n)+'_ks_score_em.npy', ks_score_em)
+np.save('simulation_main/estimation_'+str(n)+'_ks_pval_ga.npy', ks_pval_ga); np.save('simulation_main/estimation_'+str(n)+'_ks_pval_em.npy', ks_pval_em)
+np.save('simulation_main/estimation_'+str(n)+'_alpha_ga.npy', alpha_ga); np.save('simulation_main/estimation_'+str(n)+'_alpha_em.npy', alpha_em)
+np.save('simulation_main/estimation_'+str(n)+'_beta_ga.npy', beta_ga); np.save('simulation_main/estimation_'+str(n)+'_beta_em.npy', beta_em)
+np.save('simulation_main/estimation_'+str(n)+'_mu_ga.npy', mu_ga); np.save('simulation_main/estimation_'+str(n)+'_mu_em.npy', mu_em)
+np.save('simulation_main/estimation_'+str(n)+'_mu_prime_ga.npy', mu_prime_ga); np.save('simulation_main/estimation_'+str(n)+'_mu_prime_em.npy', mu_prime_em)
+np.save('simulation_main/estimation_'+str(n)+'_phi_ga.npy', phi_ga); np.save('simulation_main/estimation_'+str(n)+'_phi_em.npy', phi_em)
+np.save('simulation_main/estimation_'+str(n)+'_phi_prime_ga.npy', phi_prime_ga); np.save('simulation_main/estimation_'+str(n)+'_phi_prime_em.npy', phi_prime_em)
