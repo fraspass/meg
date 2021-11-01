@@ -6,7 +6,7 @@ from scipy import stats
 
 ## Parser to give parameter values 
 parser = argparse.ArgumentParser()
-parser.add_argument("-f","--folder", type=str, dest="dest_folder", default="simulation_inter", const=True, nargs="?",\
+parser.add_argument("-f","--folder", type=str, dest="dest_folder", default="simulation_inter2", const=True, nargs="?",\
     help="String: name of the destination folder for the output files.")
 parser.add_argument("-T", type=int, dest="T", default=10000000, const=True, nargs="?",\
 	help="Integer: maximum time of simulation. Default: T=10000000.")
@@ -47,9 +47,9 @@ for i in range(nsim):
     ## True values of the parameters
     m.gamma = np.array([0.1,0.5])
     m.gamma_prime = np.array([0.1,0.3])
-    m.nu = np.array([0.8,0.4])
+    m.nu = np.array([0.6,0.4])
     m.nu_prime = np.array([0.5,0.25])
-    m.theta = np.array([0.2,0.6])
+    m.theta = np.array([0.4,0.6])
     m.theta_prime = np.array([0.5,0.75])
     ## Simulate
     m.simulate(T=T_sim, m=M, copy_dict=False, verbose=True)
