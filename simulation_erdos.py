@@ -70,7 +70,7 @@ ks_scores = {}
 ks_pvals = {}
 graphs = {}
 
-## 
+## Estim
 estimate = False
 for q in range(100):
     ## Simulate adjacency matrix
@@ -159,7 +159,7 @@ for q in range(100):
             ks_scores[q] += [stats.kstest(pp, 'uniform')[0]]
             ks_pvals[q] += [stats.kstest(pp, 'uniform')[1]]
 
-np.save(dest_folder + '/graphs.npy', graph) 
+np.save(dest_folder + '/graphs.npy', graphs) 
 if estimate:
     ## Save files
     scores = [p for x in ks_scores.values() for p in list(x)]
