@@ -91,3 +91,21 @@ for i in [0,1]:
 
 plt.savefig("simulation_inter/nu_theta.png", bbox_inches='tight', pad_inches = 0.1, dpi=500)
 plt.show(block=False)
+
+# Import KS scores
+ks_em = np.load('simulation_inter/ks_score_em.npy')
+ks_ga = np.load('simulation_inter/ks_score_ga.npy')
+fig, axes = plt.subplots()
+bplot = axes.boxplot([ks_ga,ks_em],vert=False,labels=['Adam', 'EM'], widths=.5, patch_artist=True)
+for element in ['boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps']:
+    plt.setp(bplot[element], color='black')
+
+axes.xaxis.grid(True)
+axes.set_xlabel('Kolmogorov-Smirnov scores')
+# Fill with colors
+colors = ['orange', 'cornflowerblue']
+for patch, color in zip(bplot['boxes'], colors):
+    patch.set_facecolor(color)
+
+plt.savefig("simulation_inter/ks_scores.png", bbox_inches='tight', pad_inches = 0.1, dpi=500)
+plt.show(block=False)
