@@ -13,8 +13,8 @@ parser.add_argument("-n", type=int, dest="n", default=3000, const=True, nargs="?
 ## Number of nodes to use
 args = parser.parse_args()
 n = args.n
-if not os.path.exists('simulation_inter/estimation_'+str(n)+'/estimation_'+str(n)):
-    os.mkdir('simulation_inter/estimation_'+str(n)+'/estimation_'+str(n))
+if not os.path.exists('simulation_inter//estimation_'+str(n)):
+    os.mkdir('simulation_inter/estimation_'+str(n))
 
 ## Parse arguments
 G = {}
