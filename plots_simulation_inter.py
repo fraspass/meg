@@ -8,8 +8,8 @@ rc('text', usetex=True)
 
 ## Truth
 gamma = np.array([0.1,0.5]); gamma_prime = np.array([0.1,0.3]); baseline = np.outer(gamma, gamma_prime)
-nu = np.array([0.8,0.4]); nu_prime = np.array([0.5,0.25]); jump = np.outer(nu, nu_prime)
-theta = np.array([0.2,0.6]); theta_prime = np.array([0.5,0.75]); decay = np.outer(nu + theta, nu_prime + theta_prime)
+nu = np.array([0.6,0.4]); nu_prime = np.array([0.5,0.25]); jump = np.outer(nu, nu_prime)
+theta = np.array([0.4,0.6]); theta_prime = np.array([0.5,0.75]); decay = np.outer(nu + theta, nu_prime + theta_prime)
 
 ## Estimates of baseline
 gamma_em = np.load('simulation_inter/gamma_em.npy'); gamma_prime_em = np.load('simulation_inter/gamma_prime_em.npy')
