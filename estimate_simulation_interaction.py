@@ -93,8 +93,7 @@ for j in G:
         m.theta = np.random.uniform(low=0.1, high=1, size=m.n)
         m.theta_prime = np.random.uniform(low=0.1, high=1, size=m.n)
         ## Optimise using EM
-        for _ in range(10):
-            l = m.optimise_meg(prior_penalisation=False, learning_rate=5e-2, method='adam', max_iter=25, verbose=False, tolerance=1e-6, iter_print=False)
+        l = m.optimise_meg(prior_penalisation=False, learning_rate=5e-2, method='adam', max_iter=250, verbose=False, tolerance=1e-6, iter_print=False)
         if l[-1] > max_lik_ga[j]:
             max_lik_ga[j] = l[-1]
             gamma_ga[j] = m.gamma

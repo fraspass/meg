@@ -744,8 +744,8 @@ class meg_model:
 
 	## EM algorithm
 	def em_optimise(self, max_iter=100, niter=1, tolerance=1e-4, verbose=True):
-		if not self.tau_zero or not self.full_links:
-			raise ValueError('This EM algorithm can only be run when *all* links are *potentially* active. Explicit contraints on edges are in development.')
+		#if not self.tau_zero or not self.full_links:
+		#	raise ValueError('This EM algorithm can only be run when *all* links are *potentially* active. Explicit contraints on edges are in development.')
 		if self.main_effects and not self.hawkes_me:
 			raise ValueError('This EM algorithm can only be run for Hawkes and Poisson processes (not general Markov processes).')
 		if self.interactions and not self.hawkes_int:

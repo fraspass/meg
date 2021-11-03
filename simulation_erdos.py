@@ -70,8 +70,7 @@ ks_scores = {}
 ks_pvals = {}
 graphs = {}
 
-## Estim
-estimate = False
+## Simulate graphs
 for q in range(100):
     ## Simulate adjacency matrix
     A = {}
