@@ -116,7 +116,7 @@ for j in G:
                 m.theta = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
                 m.theta_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
     ## Optimise using EM
-    l = m.optimise_meg(prior_penalisation=False, learning_rate=eta, method='adam', max_iter=500, verbose=False, tolerance=1e-6, iter_print=True)
+    l = m.optimise_meg(prior_penalisation=False, learning_rate=eta, method='adam', max_iter=500, verbose=False, tolerance=1e-6, iter_print=False)
     ## Store output
     if m.main_effects:
         alpha[j] = np.copy(m.alpha); beta[j] = np.copy(m.beta)
