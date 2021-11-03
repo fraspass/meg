@@ -3,7 +3,6 @@ import meg
 import os, argparse
 from collections import Counter
 import numpy as np
-from scipy.sparse import coo_matrix
 from scipy import stats
 
 ## Initialise the parameters
