@@ -86,29 +86,31 @@ for q in range(100):
                 D=D, verbose=False)
     m.prior_initialisation()
     ## Initialise all to the same values
-    m.alpha = np.random.uniform(low=1e-5, high=1e-4, size=m.n)
-    m.beta = np.random.uniform(low=1e-5, high=1e-4, size=m.n)
-    if not poisson_main_effects:
-        m.mu = np.random.uniform(low=1e-5, high=1e-3, size=m.n)
-        m.mu_prime = np.random.uniform(low=1e-5, high=1e-3, size=m.n) 
-        m.phi = np.random.uniform(low=1e-5, high=1e-3, size=m.n)
-        m.phi_prime = np.random.uniform(low=1e-5, high=1e-3, size=m.n)
-    if m.D == 1:
-        m.gamma = np.random.uniform(low=1e-5, high=1e-1, size=m.n)
-        m.gamma_prime = np.random.uniform(low=1e-5, high=1e-1, size=m.n)
-        if not poisson_interactions:
-            m.nu = np.random.uniform(low=1e-2, high=1e1, size=m.n)
-            m.nu_prime = np.random.uniform(low=1e-2, high=1e1, size=m.n)
-            m.theta = np.random.uniform(low=1e-2, high=1e1, size=m.n)
-            m.theta_prime = np.random.uniform(low=1e-2, high=1e1, size=m.n)
-    else:
-        m.gamma = np.random.uniform(low=1e-5, high=1e-1, size=(m.n,m.D))
-        m.gamma_prime = np.random.uniform(low=1e-5, high=1e-1, size=(m.n,m.D))
-        if not poisson_interactions:
-            m.nu = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
-            m.nu_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
-            m.theta = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
-            m.theta_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
+    if m.main_effects:
+        m.alpha = np.random.uniform(low=1e-5, high=1e-4, size=m.n)
+        m.beta = np.random.uniform(low=1e-5, high=1e-4, size=m.n)
+        if not poisson_main_effects:
+            m.mu = np.random.uniform(low=1e-2, high=1e-1, size=m.n)
+            m.mu_prime = np.random.uniform(low=1e-2, high=1e-1, size=m.n) 
+            m.phi = np.random.uniform(low=1e-2, high=1e-1, size=m.n)
+            m.phi_prime = np.random.uniform(low=1e-2, high=1e-1, size=m.n)
+    if m.interactions:
+        if m.D == 1:
+            m.gamma = np.random.uniform(low=1e-5, high=1e-1, size=m.n)
+            m.gamma_prime = np.random.uniform(low=1e-5, high=1e-1, size=m.n)
+            if not poisson_interactions:
+                m.nu = np.random.uniform(low=1e-2, high=1e0, size=m.n)
+                m.nu_prime = np.random.uniform(low=1e-2, high=1e0, size=m.n)
+                m.theta = 1 - m.nu # np.random.uniform(low=1e-2, high=1e0, size=m.n)
+                m.theta_prime = 1 - m.nu_prime # np.random.uniform(low=1e-2, high=1e0, size=m.n)
+        else:
+            m.gamma = np.random.uniform(low=1e-5, high=1e-1, size=(m.n,m.D))
+            m.gamma_prime = np.random.uniform(low=1e-5, high=1e-1, size=(m.n,m.D))
+            if not poisson_interactions:
+                m.nu = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
+                m.nu_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
+                m.theta = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
+                m.theta_prime = np.random.uniform(low=1e-5, high=1e-0, size=(m.n,m.D))
     ## Simulate data
     m.simulate(T=T_sim, m=M, copy_dict=False, verbose=True)
     G = m.A
