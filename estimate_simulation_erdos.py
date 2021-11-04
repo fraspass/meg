@@ -34,6 +34,8 @@ parser.add_argument("-d", type=int, dest="d", default=1, const=True, nargs="?",\
 	help="Integer: number of latent features. Default: d=1.")
 parser.add_argument("-eta", type=float, dest="eta", default=1e-3, const=True, nargs="?",\
 	help="Float: number of latent features. Default: 0.001.")
+parser.add_argument("-n", type=int, dest="n", default=20, const=True, nargs="?",\
+	help="Integer: number of nodes. Default: n=20.")
 
 ## Parse arguments
 args = parser.parse_args()
@@ -46,6 +48,7 @@ hawkes_main_effects = True if args.hawkes_main_effects else False
 hawkes_interactions = True if args.hawkes_interactions else False
 D = args.d
 eta = args.eta
+N_nodes = args.n
 
 ## Parse arguments
 G = {}
@@ -58,7 +61,7 @@ for index in A:
 ## Model
 m = meg.meg_model(G[0], tau_zero=True, verbose=False, discrete=False, force_square=True)
 ## Extract n
-N_nodes = m.n
+m.n = N_nodes
 
 ## Repeat initialisations 5 times
 ks_scores = []; ks_pvals = []
@@ -82,6 +85,7 @@ for j in G:
     print("\r+++ Graph {:d} +++".format(j+1), end="")
     ## Set up a MEG model for parameter estimation
     m = meg.meg_model(G[j], tau_zero=True, verbose=False, discrete=False, force_square=True)
+    m.n = N_nodes
     m.specification(main_effects=main_effects, interactions=interactions, 
                         poisson_me=poisson_main_effects, poisson_int=poisson_interactions,
                         hawkes_me=hawkes_main_effects, hawkes_int=hawkes_interactions, 
