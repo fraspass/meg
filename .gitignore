@@ -8,3 +8,6 @@ icl_results/
 simm/
 simm_2/
 INPUT.md
+*/*.aux
+*/*.log
+*/*.synctex.gz
