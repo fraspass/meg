@@ -11,3 +11,10 @@ INPUT.md
 */*.aux
 */*.log
 */*.synctex.gz
+simulation_main/*.npy
+simulation_main/*.png
+simulation_inter/*.npy
+simulation_inter/*.png
+*old
+*old*
+*_all.py
