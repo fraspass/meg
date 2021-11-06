@@ -2,7 +2,7 @@
 
 ## Methodology
 
-The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (2021+) "Mutually exciting point process graphs for modelling dynamic networks"* [arXiv](https://arxiv.org/abs/2102.06527). 
+The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (2021+) "Mutually exciting point process graphs for modelling dynamic networks"* ([arXiv preprint](https://arxiv.org/abs/2102.06527)). 
 
 ## Understanding and running the code
 
@@ -39,6 +39,27 @@ For example, to obtain the best performing model on the Enron data, the followin
 
 ## Reproducing the results in the paper
 
-* Figure 1 can be reproduced running `./simulation_calls.sh` (computationally very expensive), followed by `boxplots.py`;
+Since many of the simulations are computationally expensive to run, the output has been stored in the repository in the directories `simulation_main`, `simulation_inter`, `simulation_1` and `simulation_2`. Details on how to obtain such outputs are given in the following paragraphs.
+
+The results, tables and figures in the paper could be reproduced using the following files:
+
+### Figures
+
+* *Figure 1* - Source `.tex` files to reproduce the figures are in the directory `tikz_process`.
+* *Figure 2* - It can be reproduced running the following three files in succession:
+    - `simulation_main_effects.sh` (WARNING: computationally demanding), which uses `simulation_main_effects.py` with argument `-s SEED`, and stores the simulated graphs in `.npy` files in `simulation_main`, with name `meg_simulate_SEED.npy`;
+    - after simulating the grahs, the parameter estimation procedure is run using `estimate_simulation_main_effects.py`, which takes as argument `-n NUMBEREVENTS` the number of events to use for estimation. The output is saved in a directory `simulation_main/estimate_NUMBEREVENTS`. For reproducing *Figure 2*, the argument `-n 3000` should be used;
+    - plots are obtained from `plots_simulation_main.py`, run with `-M NUMBEREVENTS` corresponding to the number of events used for inference (for *Figure 2*, `-M 3000`). 
+* *Figure 3* - The procedure is similar to *Figure 2*: 
+	- `simulation_interaction.sh` (WARNING: computationally demanding), which uses `simulation_interaction.py` with argument `-s SEED`, and stores the simulated graphs in `.npy` files in `simulation_inter`, with name `meg_simulate_SEED.npy`;
+	- after simulating the grahs, the parameter estimation procedure is run using `estimate_simulation_interactions.py`, which takes as argument `-n NUMBEREVENTS` the number of events to use for estimation. The output is saved in a directory `simulation_inter/estimate_NUMBEREVENTS`. For reproducing *Figure 3*, the argument `-n 3000` should be used;
+	- plots are obtained from `plots_simulation_inter.py`, run with `-M NUMBEREVENTS` corresponding to the number of events used for inference (for *Figure 3*, `-M 3000`).
+* *Figure 4* - The plots can be obtained running `estimate_simulation_main_effects.py` and `plots_simulation_main.py` multiple times with arguments `-n` and `-M` 250, 500, 	1000, and 2000.
+* *Figure 5* - The boxplots can be reproduced running `./simulation_erdos.sh`, followed by `estimate_simulation_erdos.sh` (both computationally expensive). The plot is then obtained by running followed by `boxplots.py`.
+ 
+### Tables 
+* *Table 1* - The results can be reproduced running `./enron_calls.sh` (running the entire file is **not** recommended, since the file contains command lines for **all** the 117 combinations of models in Table 1), which uses the file `enron.py`. Comparisons with the model of Fox et al. (2016) can be run using the files `fox_model.py` and `fox_enron.py`.
+
+### Data
 * The Enron data can be downloaded running `enron_filter.sh`;
-* The results in Table 1 can be reproduced running `./enron_calls.sh` (running the entire file is **not** recommended, since the file contains command lines for **all** the 117 combinations of models in Table 1).
+* For security reasons, the ICL network data have **_not_** been made available, but the code to run the model on such networks (`icl.py`) is available.
