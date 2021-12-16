@@ -2,6 +2,11 @@
 
 This repository contains a _python_ library supporting the paper *Sanna Passino, F. and Heard, N. A. (2021+) "Mutually exciting point process graphs for modelling dynamic networks"* ([arXiv preprint](https://arxiv.org/abs/2102.06527)). 
 
+The library `meg` can be installed in edit mode as follows:
+```
+pip install -e lib/
+```
+
 The repository contains multiple directories:
 * `notebooks` contains Jupyter notebooks with examples on how to use the library;
 * `lib` contains the _python_ library.
