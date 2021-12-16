@@ -64,7 +64,7 @@ if test:
     G_test = {}
 
 ## Construct the directed graph
-with open('enron_tuples_filter.txt') as f:
+with open('../data/enron_tuples_filter.txt') as f:
     for line in f:
         line = line.rstrip('\r\n').split(',')
         time = int(line[0]) - 910948020

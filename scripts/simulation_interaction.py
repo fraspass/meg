@@ -6,7 +6,7 @@ from scipy import stats
 
 ## Parser to give parameter values 
 parser = argparse.ArgumentParser()
-parser.add_argument("-f","--folder", type=str, dest="dest_folder", default="simulation_inter", const=True, nargs="?",\
+parser.add_argument("-f","--folder", type=str, dest="dest_folder", default="../results/simulation_inter", const=True, nargs="?",\
     help="String: name of the destination folder for the output files.")
 parser.add_argument("-T", type=int, dest="T", default=10000000, const=True, nargs="?",\
 	help="Integer: maximum time of simulation. Default: T=10000000.")

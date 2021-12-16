@@ -63,7 +63,7 @@ server_inverse_map = {}
 k_comp = 0
 k_host = 0
 tmin = 1579478400 ## Monday January 20, 2020 (Unix time)
-with open('data/huxley_filter.csv') as f:
+with open('../data/huxley_filter.csv') as f:
     for line in f:
         line = line.rstrip('\r\n').split(',')
         link = tuple(line[:2])

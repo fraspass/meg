@@ -13,13 +13,13 @@ parser.add_argument("-n", type=int, dest="n", default=3000, const=True, nargs="?
 ## Number of nodes to use
 args = parser.parse_args()
 n = args.n
-if not os.path.exists('simulation_main/estimation_'+str(n)):
-    os.mkdir('simulation_main/estimation_'+str(n))
+if not os.path.exists('../results/simulation_main/estimation_'+str(n)):
+    os.mkdir('../results/simulation_main/estimation_'+str(n))
 
 ## Parse arguments
 G = {}
 j = 0
-for f in np.sort(glob.glob('simulation_main/meg_*')):
+for f in np.sort(glob.glob('../results/simulation_main/meg_*')):
     A = np.load(f,allow_pickle='TRUE').item()
     for index in A:
         G[j] = A[index]
@@ -114,12 +114,12 @@ for j in G:
     ks_pval_ga += [stats.kstest(pp, 'uniform')[1]]
 
 ## Save output
-np.save('simulation_main/estimation_'+str(n)+'/loglik_ga.npy', max_lik_ga); np.save('simulation_main/estimation_'+str(n)+'/loglik_em.npy', max_lik_em)
-np.save('simulation_main/estimation_'+str(n)+'/ks_score_ga.npy', ks_score_ga); np.save('simulation_main/estimation_'+str(n)+'/ks_score_em.npy', ks_score_em)
-np.save('simulation_main/estimation_'+str(n)+'/ks_pval_ga.npy', ks_pval_ga); np.save('simulation_main/estimation_'+str(n)+'/ks_pval_em.npy', ks_pval_em)
-np.save('simulation_main/estimation_'+str(n)+'/alpha_ga.npy', alpha_ga); np.save('simulation_main/estimation_'+str(n)+'/alpha_em.npy', alpha_em)
-np.save('simulation_main/estimation_'+str(n)+'/beta_ga.npy', beta_ga); np.save('simulation_main/estimation_'+str(n)+'/beta_em.npy', beta_em)
-np.save('simulation_main/estimation_'+str(n)+'/mu_ga.npy', mu_ga); np.save('simulation_main/estimation_'+str(n)+'/mu_em.npy', mu_em)
-np.save('simulation_main/estimation_'+str(n)+'/mu_prime_ga.npy', mu_prime_ga); np.save('simulation_main/estimation_'+str(n)+'/mu_prime_em.npy', mu_prime_em)
-np.save('simulation_main/estimation_'+str(n)+'/phi_ga.npy', phi_ga); np.save('simulation_main/estimation_'+str(n)+'/phi_em.npy', phi_em)
-np.save('simulation_main/estimation_'+str(n)+'/phi_prime_ga.npy', phi_prime_ga); np.save('simulation_main/estimation_'+str(n)+'/phi_prime_em.npy', phi_prime_em)
+np.save('../results/simulation_main/estimation_'+str(n)+'/loglik_ga.npy', max_lik_ga); np.save('../results/simulation_main/estimation_'+str(n)+'/loglik_em.npy', max_lik_em)
+np.save('../results/simulation_main/estimation_'+str(n)+'/ks_score_ga.npy', ks_score_ga); np.save('../results/simulation_main/estimation_'+str(n)+'/ks_score_em.npy', ks_score_em)
+np.save('../results/simulation_main/estimation_'+str(n)+'/ks_pval_ga.npy', ks_pval_ga); np.save('../results/simulation_main/estimation_'+str(n)+'/ks_pval_em.npy', ks_pval_em)
+np.save('../results/simulation_main/estimation_'+str(n)+'/alpha_ga.npy', alpha_ga); np.save('../results/simulation_main/estimation_'+str(n)+'/alpha_em.npy', alpha_em)
+np.save('../results/simulation_main/estimation_'+str(n)+'/beta_ga.npy', beta_ga); np.save('../results/simulation_main/estimation_'+str(n)+'/beta_em.npy', beta_em)
+np.save('../results/simulation_main/estimation_'+str(n)+'/mu_ga.npy', mu_ga); np.save('../results/simulation_main/estimation_'+str(n)+'/mu_em.npy', mu_em)
+np.save('../results/simulation_main/estimation_'+str(n)+'/mu_prime_ga.npy', mu_prime_ga); np.save('../results/simulation_main/estimation_'+str(n)+'/mu_prime_em.npy', mu_prime_em)
+np.save('../results/simulation_main/estimation_'+str(n)+'/phi_ga.npy', phi_ga); np.save('../results/simulation_main/estimation_'+str(n)+'/phi_em.npy', phi_em)
+np.save('../results/simulation_main/estimation_'+str(n)+'/phi_prime_ga.npy', phi_prime_ga); np.save('../results/simulation_main/estimation_'+str(n)+'/phi_prime_em.npy', phi_prime_em)
