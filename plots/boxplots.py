@@ -6,8 +6,8 @@ rc('font',**{'family':'serif','serif':['Times']})
 rc('text', usetex=True)
 
 # Random test data
-y = np.load('simulation_1/ks_scores.npy')
-y2 = np.load('simulation_2/ks_scores.npy')
+y = np.load('../results/simulation_1/ks_scores.npy')
+y2 = np.load('../results/simulation_2/ks_scores.npy')
 
 fig, axes = plt.subplots(figsize=(7,3))
 

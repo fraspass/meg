@@ -21,8 +21,8 @@ nu = np.array([0.6,0.4]); nu_prime = np.array([0.5,0.25]); jump = np.outer(nu, n
 theta = np.array([0.4,0.6]); theta_prime = np.array([0.5,0.75]); decay = np.outer(nu + theta, nu_prime + theta_prime)
 
 ## Estimates of baseline
-gamma_em = np.load('simulation_inter/estimation_'+str(M)+'/gamma_em.npy'); gamma_prime_em = np.load('simulation_inter/estimation_'+str(M)+'/gamma_prime_em.npy')
-gamma_ga = np.load('simulation_inter/estimation_'+str(M)+'/gamma_ga.npy'); gamma_prime_ga = np.load('simulation_inter/estimation_'+str(M)+'/gamma_prime_ga.npy') 
+gamma_em = np.load('../results/simulation_inter/estimation_'+str(M)+'/gamma_em.npy'); gamma_prime_em = np.load('../results/simulation_inter/estimation_'+str(M)+'/gamma_prime_em.npy')
+gamma_ga = np.load('../results/simulation_inter/estimation_'+str(M)+'/gamma_ga.npy'); gamma_prime_ga = np.load('../results/simulation_inter/estimation_'+str(M)+'/gamma_prime_ga.npy') 
 baseline_em = np.array([np.outer(gamma_em[i], gamma_prime_em[i]) for i in range(gamma_em.shape[0])])
 baseline_ga = np.array([np.outer(gamma_ga[i], gamma_prime_ga[i]) for i in range(gamma_ga.shape[0])])
 
@@ -44,12 +44,12 @@ for i in [0,1]:
         axs[i,j].set_ylabel('Density')
         axs[i,j].set_xlabel('$\\hat{\\gamma}_{'+str(i+1)+'}\\hat{\\gamma}^\\prime_{'+str(j+1)+'}$')
 
-plt.savefig('simulation_inter/estimation_'+str(M)+'/gamma.png', bbox_inches='tight', pad_inches = 0.1, dpi=500)
+plt.savefig('../results/simulation_inter/estimation_'+str(M)+'/gamma.png', bbox_inches='tight', pad_inches = 0.1, dpi=500)
 plt.show(block=False)
 
 ## Estimates of jump
-nu_em = np.load('simulation_inter/estimation_'+str(M)+'/nu_em.npy'); nu_prime_em = np.load('simulation_inter/estimation_'+str(M)+'/nu_prime_em.npy')
-nu_ga = np.load('simulation_inter/estimation_'+str(M)+'/nu_ga.npy'); nu_prime_ga = np.load('simulation_inter/estimation_'+str(M)+'/nu_prime_ga.npy') 
+nu_em = np.load('../results/simulation_inter/estimation_'+str(M)+'/nu_em.npy'); nu_prime_em = np.load('../results/simulation_inter/estimation_'+str(M)+'/nu_prime_em.npy')
+nu_ga = np.load('../results/simulation_inter/estimation_'+str(M)+'/nu_ga.npy'); nu_prime_ga = np.load('../results/simulation_inter/estimation_'+str(M)+'/nu_prime_ga.npy') 
 jump_em = np.array([np.outer(nu_em[i], nu_prime_em[i]) for i in range(nu_em.shape[0])])
 jump_ga = np.array([np.outer(nu_ga[i], nu_prime_ga[i]) for i in range(nu_ga.shape[0])])
 
@@ -71,12 +71,12 @@ for i in [0,1]:
         axs[i,j].set_ylabel('Density')
         axs[i,j].set_xlabel('$\\hat{\\nu}_{'+str(i+1)+'}\\hat{\\nu}^\\prime_{'+str(j+1)+'}$')
 
-plt.savefig('simulation_inter/estimation_'+str(M)+'/nu.png', bbox_inches='tight', pad_inches = 0.1, dpi=500)
+plt.savefig('../results/simulation_inter/estimation_'+str(M)+'/nu.png', bbox_inches='tight', pad_inches = 0.1, dpi=500)
 plt.show(block=False)
 
 ## Estimates of decay
-theta_em = np.load('simulation_inter/estimation_'+str(M)+'/theta_em.npy'); theta_prime_em = np.load('simulation_inter/estimation_'+str(M)+'/theta_prime_em.npy')
-theta_ga = np.load('simulation_inter/estimation_'+str(M)+'/theta_ga.npy'); theta_prime_ga = np.load('simulation_inter/estimation_'+str(M)+'/theta_prime_ga.npy') 
+theta_em = np.load('../results/simulation_inter/estimation_'+str(M)+'/theta_em.npy'); theta_prime_em = np.load('../results/simulation_inter/estimation_'+str(M)+'/theta_prime_em.npy')
+theta_ga = np.load('../results/simulation_inter/estimation_'+str(M)+'/theta_ga.npy'); theta_prime_ga = np.load('../results/simulation_inter/estimation_'+str(M)+'/theta_prime_ga.npy') 
 decay_em = np.array([np.outer(nu_em[i] + theta_em[i], nu_prime_em[i] + theta_prime_em[i]) for i in range(nu_em.shape[0])])
 decay_ga = np.array([np.outer(nu_ga[i] + theta_ga[i], nu_prime_ga[i] + theta_prime_ga[i]) for i in range(nu_ga.shape[0])])
 
@@ -98,12 +98,12 @@ for i in [0,1]:
         axs[i,j].set_ylabel('Density')
         axs[i,j].set_xlabel('$(\\hat{\\nu}_{'+str(i+1)+'}+\\hat{\\theta}_{'+str(i+1)+'})(\\hat{\\nu}^\\prime_{'+str(j+1)+'}+\\hat{\\theta}^\\prime_{'+str(j+1)+'})$')
 
-plt.savefig('simulation_inter/estimation_'+str(M)+'/nu_theta.png', bbox_inches='tight', pad_inches = 0.1, dpi=500)
+plt.savefig('../results/simulation_inter/estimation_'+str(M)+'/nu_theta.png', bbox_inches='tight', pad_inches = 0.1, dpi=500)
 plt.show(block=False)
 
 # Import KS scores
-ks_em = np.load('simulation_inter/estimation_'+str(M)+'/ks_score_em.npy')
-ks_ga = np.load('simulation_inter/estimation_'+str(M)+'/ks_score_ga.npy')
+ks_em = np.load('../results/simulation_inter/estimation_'+str(M)+'/ks_score_em.npy')
+ks_ga = np.load('../results/simulation_inter/estimation_'+str(M)+'/ks_score_ga.npy')
 fig, axes = plt.subplots()
 bplot = axes.boxplot([ks_ga,ks_em],vert=False,labels=['Adam', 'EM'], widths=.5, patch_artist=True)
 for element in ['boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps']:
@@ -116,5 +116,5 @@ colors = ['orange', 'cornflowerblue']
 for patch, color in zip(bplot['boxes'], colors):
     patch.set_facecolor(color)
 
-plt.savefig('simulation_inter/estimation_'+str(M)+'/ks_scores.png', bbox_inches='tight', pad_inches = 0.1, dpi=500)
+plt.savefig('../results/simulation_inter/estimation_'+str(M)+'/ks_scores.png', bbox_inches='tight', pad_inches = 0.1, dpi=500)
 plt.show(block=False)
