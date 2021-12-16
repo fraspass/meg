@@ -6,10 +6,19 @@ The library `meg` can be installed in edit mode as follows:
 ```
 pip install -e lib/
 ```
+The library can then be imported in any _python_ session:
+```python3
+import lsbm
+```
 
 The repository contains multiple directories:
+* `lib` contains the _python_ library;
 * `notebooks` contains Jupyter notebooks with examples on how to use the library;
-* `lib` contains the _python_ library.
+* `scripts` contains _python_ scripts to reproduce the results in the paper;
+* `results` contains some of the results described in the paper;
+* `plots` contains _python_ scripts for reproducing the plots in the paper;
+* `tikz_process` contains _.tex_ files for reproducing Figure 1; 
+* `fox` contains additional scripts for implementing the methodology of Fox et al. (2016).
 
 ## Methodology
 
