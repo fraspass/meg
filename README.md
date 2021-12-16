@@ -8,7 +8,7 @@ pip install -e lib/
 ```
 The library can then be imported in any _python_ session:
 ```python3
-import lsbm
+import meg
 ```
 
 The repository contains multiple directories:
