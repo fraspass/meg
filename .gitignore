@@ -32,3 +32,4 @@ simulation_inter/*.png
 .DS_Store
 */.DS_Store
 notebooks/.ipynb_checkpoints/*
+tikz_process/*.zip

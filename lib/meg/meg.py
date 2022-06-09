@@ -1211,7 +1211,7 @@ class meg_model:
 							sum_1 = np.sum(np.exp(-(mu+phi) * t_diff) - np.exp(-(mu+phi) * t_diff_tau))
 							sum_2 = np.sum((np.multiply(t_diff, np.exp(-(mu+phi) * t_diff)) - np.multiply(t_diff_tau,np.exp(-(mu+phi) * t_diff_tau))))
 							vals_mu += [phi / ((mu+phi) ** 2) * sum_1 - mu / (mu+phi) * sum_2 + psi_sum + mu * psi_derivative_sum]
-							vals_phi += [- mu / ((mu+phi) ** 2) * sum_1 - 1 / (mu+phi) * sum_2 + mu * psi_derivative_sum]
+							vals_phi += [- mu / (mu+phi) * (sum_1 / (mu+phi) + sum_2) + mu * psi_derivative_sum]
 						else:
 							vals_mu += [psi_sum + mu * psi_derivative_sum]
 							vals_phi += [mu * psi_derivative_sum]
@@ -1226,7 +1226,7 @@ class meg_model:
 							sum_2_prime = np.sum((np.multiply(t_diff_prime, np.exp(-(mu_prime+phi_prime) * t_diff_prime)) - \
 												np.multiply(t_diff_tau_prime, np.exp(-(mu_prime+phi_prime) * t_diff_tau_prime))))
 							res_mu = [phi_prime / ((mu_prime+phi_prime) ** 2) * sum_1_prime - mu_prime / (mu_prime+phi_prime) * sum_2_prime + psi_prime_sum + mu_prime * psi_prime_derivative_sum]
-							res_phi = [- mu_prime / ((mu_prime+phi_prime) ** 2) * sum_1_prime - 1 / (mu_prime+phi_prime) * sum_2_prime + mu_prime * psi_prime_derivative_sum]
+							res_phi = [- mu_prime / (mu_prime+phi_prime) * (sum_1_prime / (mu_prime+phi_prime) + sum_2_prime) + mu_prime * psi_prime_derivative_sum]
 						else:
 							res_mu = [psi_prime_sum + mu_prime * psi_prime_derivative_sum]
 							res_phi = [mu_prime * psi_prime_derivative_sum]
@@ -1242,7 +1242,7 @@ class meg_model:
 							sum_1 = np.sum((np.exp(-(mu+phi) * t_diff) - 1)[zero_out])
 							sum_2 = np.sum(np.multiply(t_diff,np.exp(-(mu+phi) * t_diff))[zero_out])
 							vals_mu += [phi / ((mu+phi) ** 2) * sum_1 - mu / (mu+phi) * sum_2 + psi_sum - mu * psi_derivative_sum]
-							vals_phi += [- mu / ((mu+phi) ** 2) * sum_1 - 1 / (mu+phi) * sum_2 - mu * psi_derivative_sum]
+							vals_phi += [- mu / (mu+phi) * (sum_1 / (mu+phi) + sum_2) - mu * psi_derivative_sum]
 						else:
 							vals_mu += [psi_sum - mu * psi_derivative_sum]
 							vals_phi += [- mu * psi_derivative_sum]
@@ -1257,7 +1257,7 @@ class meg_model:
 							sum_1_prime = np.sum((np.exp(-(mu_prime+phi_prime) * t_diff_prime) - 1)[zero_out_prime])
 							sum_2_prime = np.sum(np.multiply(t_diff_prime,np.exp(-(mu_prime+phi_prime) * t_diff_prime))[zero_out_prime])
 							res_mu = [phi_prime / ((mu_prime+phi_prime) ** 2) * sum_1_prime - mu_prime / (mu_prime+phi_prime) * sum_2_prime + psi_prime_sum - mu_prime * psi_prime_derivative_sum]
-							res_phi = [- mu_prime / ((mu_prime+phi_prime) ** 2) * sum_1_prime - 1 / (mu_prime+phi_prime) * sum_2_prime - mu_prime * psi_prime_derivative_sum]
+							res_phi = [- mu_prime / (mu_prime+phi_prime) (sum_1_prime / (mu_prime+phi_prime) + sum_2_prime) - mu_prime * psi_prime_derivative_sum]
 						else:
 							res_mu = [psi_prime_sum - mu_prime * psi_prime_derivative_sum]
 							res_phi = [- mu_prime * psi_prime_derivative_sum]
