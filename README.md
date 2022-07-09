@@ -1,6 +1,6 @@
 # Mutually exciting point process graphs for modelling dynamic networks
 
-This repository contains a _python_ library supporting the paper *Sanna Passino, F. and Heard, N. A. (2021+) "Mutually exciting point process graphs for modelling dynamic networks"* ([arXiv preprint](https://arxiv.org/abs/2102.06527)). 
+This repository contains a _python_ library supporting the paper *Sanna Passino, F. and Heard, N. A. (2022) "Mutually exciting point process graphs for modelling dynamic networks"*, Journal of Computational and Graphical Statistics, to appear ([link](https://www.tandfonline.com/doi/full/10.1080/10618600.2022.2096048), [arXiv preprint](https://arxiv.org/abs/2102.06527)). 
 
 The library `meg` can be installed in edit mode as follows:
 ```
