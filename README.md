@@ -28,7 +28,7 @@ The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (202
 
 The main part of the code is contained in the file `meg.py`, which contains a *Python* class for the MEG model and inference using gradient ascent and expectation-maximisation methods. 
 
-For the simulation in Section 4.1, the file `simulation.py` is used. For fitting the model on the Enron and ICL data, the files `enron.py` and `icl.py` are used. Details about the possible options are given by the *help* function for each file. For example, running `simulation.py --help` returns: 
+For the simulation in Section 5.2, the file `simulation_erdos.py` is used, using the arguments in `simulation_erdos.sh` in `scripts`. For fitting the model on the Enron and ICL data, the files `enron.py` and `icl.py` are used. Details about the possible options are given by the *help* function for each file. For example, running `python3 scripts/simulation_erdos.py --help` returns: 
 
 * `-f`: name of the destination folder for the output files,
 * `-m`: Boolean variable for the main effects (default: FALSE),
@@ -45,7 +45,7 @@ For the simulation in Section 4.1, the file `simulation.py` is used. For fitting
 
 For example, the first simulation is obtained running the following command line:
 ```
-./simulation.py -f simulation_1 -M 5000 -p 0.25 -n 10 -d 1 -m -i -hm -hi & 
+python3 scripts/simulation_erdos.py -f simulation_1 -M 5000 -p 0.25 -n 10 -d 1 -m -i -hm -hi & 
 ```
 
 Similar commands are used for the application on the Enron and ICL data. Running `./enron.py --help` gives two additional options:
@@ -54,12 +54,12 @@ Similar commands are used for the application on the Enron and ICL data. Running
 
 For example, to obtain the best performing model on the Enron data, the following command line should be run:
 ```
-./enron.py -m -hm -i -d 5 -z -f 'enron_results/tau_Aij/mi_hm_wi_5' &
+python3 scripts/enron.py -m -hm -i -d 5 -z -f 'enron_results/tau_Aij/mi_hm_wi_5' &
 ```
 
 ## Reproducing the results in the paper
 
-Since many of the simulations are computationally expensive to run, the output has been stored in the repository in the directories `simulation_main`, `simulation_inter`, `simulation_1` and `simulation_2`. Details on how to obtain such outputs are given in the following paragraphs.
+Since many of the simulations are computationally expensive to run, the output has been stored in the repository in the directories `simulation_main`, `simulation_inter`, `simulation_1` and `simulation_2` in `results`. Details on how to obtain such outputs are given in the following paragraphs.
 
 The results, tables and figures in the paper could be reproduced using the following files:
 
@@ -81,5 +81,5 @@ The results, tables and figures in the paper could be reproduced using the follo
 * *Table 1* - The results can be reproduced running `./enron_calls.sh` (running the entire file is **not** recommended, since the file contains command lines for **all** the 117 combinations of models in Table 1), which uses the file `enron.py`. Comparisons with the model of Fox et al. (2016) can be run using the files `fox_model.py` and `fox_enron.py`.
 
 ### Data
-* The Enron data can be downloaded running `enron_filter.sh`;
-* For security reasons, the ICL network data have **_not_** been made available, but the code to run the model on such networks (`icl.py`) is available.
+* The Enron data can be downloaded running `scripts/enron_filter.sh`;
+* For security reasons, the ICL network data have **_not_** been made available, but the code to run the model on such networks (`scripts/icl.py`) is available.
