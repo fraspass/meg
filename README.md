@@ -20,6 +20,8 @@ The repository contains multiple directories:
 * `tikz_process` contains _.tex_ files for reproducing Figure 1; 
 * `fox` contains additional scripts for implementing the methodology of [Fox et al. (2016)](https://doi.org/10.1080/01621459.2015.1135802).
 
+*Update December 2023*: if Python 3.12 is used, then the instructions at [this link](https://numba.discourse.group/t/ann-numba-0-59-0rc1-and-llvmlite-0-42-0rc1/2329) should be followed to install `numba` for Python 3.12, which would then avoid errors with the installation of `sparse` (required for the `meg` installation).
+
 ## Methodology
 
 The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (2023)*. 
