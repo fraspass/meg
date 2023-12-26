@@ -1,32 +1,32 @@
 # Mutually exciting point process graphs for modelling dynamic networks
 
-This repository contains a _python_ library supporting the paper *Sanna Passino, F. and Heard, N. A. (2022) "Mutually exciting point process graphs for modelling dynamic networks"*, Journal of Computational and Graphical Statistics, to appear ([link](https://www.tandfonline.com/doi/full/10.1080/10618600.2022.2096048), [arXiv preprint](https://arxiv.org/abs/2102.06527)). 
+This repository contains a _Python_ library supporting the paper *Sanna Passino, F. and Heard, N. A. (2023) "Mutually exciting point process graphs for modelling dynamic networks"*, Journal of Computational and Graphical Statistics, 32:1, 116-130 ([link](https://www.tandfonline.com/doi/full/10.1080/10618600.2022.2096048), [arXiv preprint](https://arxiv.org/abs/2102.06527)). 
 
 The library `meg` can be installed in edit mode as follows:
 ```
 pip install -e lib/
 ```
-The library can then be imported in any _python_ session:
+The library can then be imported in any _Python_ session:
 ```python3
 import meg
 ```
 
 The repository contains multiple directories:
-* `lib` contains the _python_ library;
+* `lib` contains the _Python_ library;
 * `notebooks` contains Jupyter notebooks with examples on how to use the library;
-* `scripts` contains _python_ scripts to reproduce the results in the paper;
+* `scripts` contains _Python_ scripts to reproduce the results in the paper;
 * `results` contains some of the results described in the paper;
-* `plots` contains _python_ scripts for reproducing the plots in the paper;
+* `plots` contains _Python_ scripts for reproducing the plots in the paper;
 * `tikz_process` contains _.tex_ files for reproducing Figure 1; 
 * `fox` contains additional scripts for implementing the methodology of [Fox et al. (2016)](https://doi.org/10.1080/01621459.2015.1135802).
 
 ## Methodology
 
-The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (2021+) "Mutually exciting point process graphs for modelling dynamic networks"* ([arXiv preprint](https://arxiv.org/abs/2102.06527)). 
+The model and datasets are described in *Sanna Passino, F. and Heard, N. A. (2023)*. 
 
 ## Understanding and running the code
 
-The main part of the code is contained in the file `meg.py`, which contains a *python* class for the MEG model and inference using gradient ascent and expectation-maximisation methods. 
+The main part of the code is contained in the file `meg.py`, which contains a *Python* class for the MEG model and inference using gradient ascent and expectation-maximisation methods. 
 
 For the simulation in Section 4.1, the file `simulation.py` is used. For fitting the model on the Enron and ICL data, the files `enron.py` and `icl.py` are used. Details about the possible options are given by the *help* function for each file. For example, running `simulation.py --help` returns: 
 
